@@ -79,11 +79,12 @@ const projects = [
     repo: "#",
   },
   {
-    title: "[EDIT: Project 2 Name]",
+    title: "Gov Mail — Incoming Email Automation",
     category: "Automation",
-    icon: "🤖",
-    desc: "[EDIT: e.g. an n8n workflow that syncs leads from a form into a CRM and pings a Telegram channel.]",
-    tags: ["n8n", "Telegram Bot", "REST API"],
+    icon: "📧",
+    image: "assets/email-automation-workflow.png",
+    desc: "An n8n workflow that monitors a Gmail inbox every minute, logs every unread email to Google Sheets with a unique auto-generated control number, and saves any attachments to disk. An LLM (Groq) reads the email body and returns a structured assessment — urgency level, category, a summary, and a recommended forwarding/reply message — which is parsed and pushed instantly to Telegram via the Bot API for quick action.",
+    tags: ["n8n", "Gmail API", "Google Sheets", "Groq LLM", "Telegram Bot API"],
     live: "#",
     repo: "#",
   },
@@ -174,8 +175,11 @@ function renderProjects() {
 
       return `
         <div class="hover-lift group rounded-xl overflow-hidden bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all">
-          <div class="h-32 flex items-center justify-center text-4xl" style="background-color:${accent}22;">
-            <span aria-hidden="true">${p.icon}</span>
+          <div class="h-32 flex items-center justify-center text-4xl overflow-hidden" style="background-color:${accent}22;">
+            ${p.image
+          ? `<img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover" />`
+          : `<span aria-hidden="true">${p.icon}</span>`
+        }
           </div>
           <div class="p-5">
             <p class="text-xs uppercase tracking-wide text-slate-400 mb-1">${p.category}</p>
