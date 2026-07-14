@@ -684,11 +684,11 @@
       link: ""
     },
     {
-      title: "Workflow Automation Suite",
-      description: "n8n workflows that sync form submissions into Google Workspace and notify the team instantly over Telegram.",
+      title: "Google Mail — Incoming Email Automation",
+      description: "An n8n workflow that monitors a Gmail inbox every minute, logs every unread email to Google Sheets with a unique auto-generated control number, and saves any attachments to disk. A Groq LLM reads the email body and returns a structured assessment — urgency level, category, a summary, and a recommended forwarding/reply message — which is parsed and pushed instantly to Telegram via the Bot API for quick action.",
       category: "Automation",
-      image: "gradient",
-      stack: ["n8n", "googleworkspace", "telegram"],
+      image: "assets/email-automation-workflow.png",
+      stack: ["n8n", "google", "groq", "telegram"],
       link: ""
     },
     {
