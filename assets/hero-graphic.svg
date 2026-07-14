@@ -1,0 +1,59 @@
+<!--
+  Decorative hero graphic — an ORIGINAL abstract "split" illustration
+  (colorful/painterly on the left, grayscale/photographic on the right),
+  inspired by the two-sides-of-one-person layout concept, not a copy of
+  any specific artist's artwork.
+
+  EDIT: swap this whole file for your own photo or illustration whenever
+  you have one. If you use a bitmap photo instead, a simple approach is a
+  CSS clip-path split (color filter on one half, grayscale on the other)
+  over a single <img> — ask if you want that version instead of an SVG.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480" width="400" height="480" role="img" aria-label="Abstract illustration split between a colorful designer side and a grayscale coder side">
+  <defs>
+    <clipPath id="bust">
+      <circle cx="200" cy="160" r="95" />
+      <path d="M 78 248 Q 58 320 38 478 L 362 478 Q 342 320 322 248 Q 262 282 200 282 Q 138 282 78 248 Z" />
+    </clipPath>
+    <clipPath id="leftHalf"><rect x="0" y="0" width="200" height="480" /></clipPath>
+    <clipPath id="rightHalf"><rect x="200" y="0" width="200" height="480" /></clipPath>
+    <linearGradient id="grayGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#94a3b8" />
+      <stop offset="100%" stop-color="#475569" />
+    </linearGradient>
+  </defs>
+
+  <!-- Filled bust, clipped to the silhouette -->
+  <g clip-path="url(#bust)">
+    <!-- LEFT — colorful / painterly -->
+    <g clip-path="url(#leftHalf)">
+      <rect x="0" y="0" width="200" height="480" fill="#fafaf9" />
+      <ellipse cx="115" cy="150" rx="75" ry="95" fill="#e2725b" opacity="0.9" transform="rotate(-12 115 150)" />
+      <ellipse cx="150" cy="205" rx="65" ry="100" fill="#e7b34c" opacity="0.85" transform="rotate(8 150 205)" />
+      <ellipse cx="85" cy="280" rx="85" ry="110" fill="#4f9a94" opacity="0.85" />
+      <ellipse cx="165" cy="345" rx="95" ry="130" fill="#4f90c8" opacity="0.8" />
+      <path d="M 55 130 Q 90 55 200 60 Q 205 100 195 130 Q 130 100 55 130 Z" fill="#111827" />
+    </g>
+    <!-- RIGHT — grayscale / photographic -->
+    <g clip-path="url(#rightHalf)">
+      <rect x="200" y="0" width="200" height="480" fill="url(#grayGrad)" />
+      <path d="M 205 130 Q 195 100 200 60 Q 310 55 345 130 Q 270 100 205 130 Z" fill="#111827" />
+    </g>
+  </g>
+
+  <!-- Shared line art on top so the two halves read as one continuous figure -->
+  <g fill="none" stroke="#111827" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="200" cy="160" r="95" />
+    <path d="M 78 248 Q 58 320 38 478 M 322 248 Q 342 320 362 478" />
+    <path d="M 78 248 Q 138 282 200 282 Q 262 282 322 248" />
+    <path d="M 160 140 Q 170 133 182 138" />
+    <path d="M 218 138 Q 230 133 240 140" />
+    <circle cx="172" cy="152" r="3" fill="#111827" />
+    <circle cx="228" cy="152" r="3" fill="#111827" />
+    <path d="M 200 158 L 197 188 Q 200 193 205 190" />
+    <path d="M 178 208 Q 200 218 222 208" />
+  </g>
+
+  <!-- Center divider -->
+  <line x1="200" y1="55" x2="200" y2="478" stroke="#111827" stroke-width="2" opacity="0.55" />
+</svg>

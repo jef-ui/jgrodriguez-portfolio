@@ -1,0 +1,96 @@
+/* ==========================================================================
+   Custom styles that go beyond Tailwind's utility classes.
+   Loaded after the Tailwind CDN script, so these rules can override it.
+   ========================================================================== */
+
+/* ---- Palette accents used for skill-card borders / thumbnail blocks ---- */
+:root {
+  --accent-coral: #e2725b;
+  --accent-mustard: #e7b34c;
+  --accent-teal: #4f9a94;
+  --accent-blue: #4f90c8;
+}
+
+/* ---- Simple scroll-reveal (paired with the IntersectionObserver in main.js) ---- */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---- Active nav link ---- */
+.nav-link.active,
+.nav-link-mobile.active {
+  color: var(--accent-coral);
+}
+.nav-link.active::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -6px;
+  height: 2px;
+  background: var(--accent-coral);
+}
+.nav-link { position: relative; }
+
+/* ---- Accessibility: visible skip-link for keyboard users ---- */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: #111827;
+  color: #fff;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0 0 0.5rem 0;
+  font-weight: 600;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+/* ---- Consistent focus ring for keyboard navigation ---- */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent-coral);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- Back-to-top button (floats over the projects/footer boundary) ---- */
+#backToTop {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 40;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+#backToTop.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+/* ---- The circular "scroll up" button that overlaps the footer's top edge ---- */
+.footer-scroll-cue {
+  position: relative;
+  top: -24px;
+  margin-bottom: -24px;
+}
+
+/* ---- Respect users who prefer less motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  #backToTop,
+  .hover-lift {
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}

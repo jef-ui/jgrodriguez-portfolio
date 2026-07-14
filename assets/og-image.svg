@@ -1,0 +1,28 @@
+<!--
+  Placeholder Open Graph / social-share image (1200x630, the standard OG size).
+
+  EDIT: This is an SVG placeholder so the project ships with zero binary
+  assets. Some platforms (notably some link-preview crawlers) don't render
+  SVG for og:image reliably. For best compatibility, export this as a real
+  1200x630 PNG or JPG (screenshot it, or recreate it in Figma/Canva) and:
+    1. Save it as assets/og-image.png
+    2. Update the og:image / twitter:image hrefs in index.html to point to it
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <text x="80" y="280" font-family="Inter, system-ui, sans-serif" font-size="56" font-weight="800" fill="#f8fafc">
+    [EDIT: Your Name]
+  </text>
+  <text x="80" y="340" font-family="Inter, system-ui, sans-serif" font-size="32" font-weight="600" fill="#6366f1">
+    Full-Stack Web Developer &amp; Automation Engineer
+  </text>
+  <text x="80" y="390" font-family="Inter, system-ui, sans-serif" font-size="22" fill="#94a3b8">
+    [EDIT: short tagline for the social preview card]
+  </text>
+</svg>
