@@ -671,7 +671,7 @@
     grid.innerHTML = list.map((p, i) => {
       const stack = p.stack.map(k => renderIcon(k, { size: 18 })).join("");
       const link = p.link
-        ? `<a class="work-link" href="${p.link}" target="_blank" rel="noopener noreferrer">View project &rarr;</a>`
+        ? `<a class="work-link" href="${p.link}" target="_blank" rel="noopener noreferrer">Prototype Preview &rarr;</a>`
         : "";
       const thumb = p.image
         ? `<div class="work-thumb"><img src="${p.image}" alt="${p.title} preview" loading="lazy"></div>`
