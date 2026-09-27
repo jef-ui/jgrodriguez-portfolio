@@ -404,20 +404,20 @@
     border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
     margin: 0 0 32px;
   }
+  /* 2 x 2 on mobile, one row of 4 from 640px. */
   .stat { padding: 20px 0; }
-  .stat:nth-child(2) { padding-left: 20px; border-left: 1px solid var(--line); }
-  .stat:nth-child(3) { grid-column: 1 / -1; border-top: 1px solid var(--line); }
+  .stat:nth-child(even) { padding-left: 20px; border-left: 1px solid var(--line); }
+  .stat:nth-child(n+3) { border-top: 1px solid var(--line); }
   .stat-num { display: block; font-size: 2.5rem; font-weight: 500; letter-spacing: -0.04em; line-height: 1.1; }
-  .stat-num.todo { color: var(--sub); }
   .stat-cap {
     display: block; margin-top: 6px;
     font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--sub);
   }
   @media (min-width: 640px) {
-    .stats { grid-template-columns: repeat(3, 1fr); }
-    .stat { padding: 24px 24px; }
-    .stat:first-child { padding-left: 0; }
-    .stat:nth-child(3) { grid-column: auto; border-top: 0; border-left: 1px solid var(--line); }
+    .stats { grid-template-columns: repeat(4, 1fr); }
+    .stat, .stat:nth-child(even) { padding: 24px 20px; border-left: 1px solid var(--line); }
+    .stat:first-child { padding-left: 0; border-left: 0; }
+    .stat:nth-child(n+3) { border-top: 0; }
     .stat-num { font-size: 3rem; }
   }
 
@@ -445,9 +445,7 @@
   .gh-months { grid-auto-flow: column; height: 16px; font-family: var(--mono); font-size: 10px; color: var(--sub); }
   .gh-months span { white-space: nowrap; }
   .gh-grid { grid-template-rows: repeat(7, var(--cell)); grid-auto-flow: column; }
-  /* Light theme: black-and-white scale; dark theme: green. */
-  .gh { --gh-ink: #111111; }
-  :root[data-theme="dark"] .gh { --gh-ink: var(--accent); }
+  .gh { --gh-ink: var(--accent); }
   .gh-grid i, .gh-legend i { border-radius: 2px; background: var(--line); }
   .gh i[data-l="1"] { background: color-mix(in srgb, var(--gh-ink) 35%, var(--surface)); }
   .gh i[data-l="2"] { background: color-mix(in srgb, var(--gh-ink) 60%, var(--surface)); }
@@ -865,12 +863,12 @@
       </ol>
     </section>
 
-    <!-- Stats: first two are counted from the data in the script below. -->
+    <!-- Stats: the last two are filled in by the script (live GitHub count, tool count). -->
     <dl class="stats reveal">
-      <div class="stat"><dt class="sr-only">GitHub contributions in the last year</dt><dd style="margin:0"><span class="stat-num" data-stat="contributions">—</span><span class="stat-cap" aria-hidden="true">GitHub contributions</span></dd></div>
+      <div class="stat"><dt class="sr-only">Years in the IT industry</dt><dd style="margin:0"><span class="stat-num">13</span><span class="stat-cap" aria-hidden="true">Years in IT</span></dd></div>
+      <div class="stat"><dt class="sr-only">Years developing projects</dt><dd style="margin:0"><span class="stat-num">8</span><span class="stat-cap" aria-hidden="true">Years building</span></dd></div>
+      <div class="stat"><dt class="sr-only">GitHub contributions in the last year</dt><dd style="margin:0"><span class="stat-num" data-stat="contributions">—</span><span class="stat-cap" aria-hidden="true">Contributions</span></dd></div>
       <div class="stat"><dt class="sr-only">Tools in my stack</dt><dd style="margin:0"><span class="stat-num" data-stat="tools">15</span><span class="stat-cap" aria-hidden="true">Tools in my stack</span></dd></div>
-      <!-- TODO: replace with a real number (e.g. years of experience). -->
-      <div class="stat"><dt class="sr-only">Years building</dt><dd style="margin:0"><span class="stat-num todo">TODO</span><span class="stat-cap" aria-hidden="true">Years building</span></dd></div>
     </dl>
 
     <!-- Live GitHub contributions (rendered by initGitHub below). Falls back to a plain link. -->
@@ -1057,19 +1055,11 @@
   // ==========================================================================
   const projects = [
     {
-      title: "Google Mail — Incoming Email Automation",
-      description: "An n8n workflow that monitors a Gmail inbox every minute, logs every unread email to Google Sheets with a unique auto-generated control number, and saves any attachments to disk. A Groq LLM reads the email body and returns a structured assessment — urgency level, category, a summary, and a recommended forwarding/reply message — which is parsed and pushed instantly to Telegram via the Bot API for quick action.",
-      category: "Automation",
-      image: "assets/work-gmail",
-      stack: ["n8n", "googleworkspace", "groq", "telegram"],
-      link: ""
-    },
-    {
       title: "IIMS (Integrated Information Management System)",
       short: "IIMS",
       description: "A locally-hosted system built for use by regional government agencies with modules for weather monitoring, data tracking, and inventory management. Auto-generates PDF reports, guest logs, radio logs, and personnel records, integrated with Weather and Map APIs.",
       category: "Web",
-      image: "",
+      image: "assets/work-iims",
       stack: ["php", "laravel", "mysql", "docker"],
       link: ""
     },
@@ -1091,14 +1081,6 @@
       link: ""
     },
     {
-      title: "Cake Business Shop Management System",
-      description: "A dashboard for daily and weekly sales, stock levels, trend charts, and customer records, paired with a POS module for QR-code checkout and auto-generated receipts.",
-      category: "Web",
-      image: "assets/work-cake",
-      stack: ["php", "laravel", "mysql", "tailwind"],
-      link: "https://cake-shop-management-system-jade.vercel.app/"
-    },
-    {
       title: "DRCMS (Digital Records & Communication Management System)",
       short: "DRCMS",
       description: "Auto-logs incoming and outgoing correspondence via Gmail and a locally-hosted n8n instance. Modules for a document repository, activity calendar, auto-routing, email notifications, and predictive analytics forecasting monthly document volume.",
@@ -1108,12 +1090,28 @@
       link: ""
     },
     {
+      title: "Cake Business Shop Management System",
+      description: "A dashboard for daily and weekly sales, stock levels, trend charts, and customer records, paired with a POS module for QR-code checkout and auto-generated receipts.",
+      category: "Web",
+      image: "assets/work-cake",
+      stack: ["php", "laravel", "mysql", "tailwind"],
+      link: "https://cake-shop-management-system-jade.vercel.app/"
+    },
+    {
       title: "RAG System (Offline AI Assistant)",
       short: "RAG System",
       description: "A locally-trained AI assistant built on private, unpublished company data using Ollama with the Qwen model, keeping sensitive information fully offline.",
       category: "AI",
       image: "",
       stack: ["ollama", "qwen"],
+      link: ""
+    },
+    {
+      title: "Google Mail — Incoming Email Automation",
+      description: "An n8n workflow that monitors a Gmail inbox every minute, logs every unread email to Google Sheets with a unique auto-generated control number, and saves any attachments to disk. A Groq LLM reads the email body and returns a structured assessment — urgency level, category, a summary, and a recommended forwarding/reply message — which is parsed and pushed instantly to Telegram via the Bot API for quick action.",
+      category: "Automation",
+      image: "assets/work-gmail",
+      stack: ["n8n", "googleworkspace", "groq", "telegram"],
       link: ""
     }
   ];
@@ -1148,9 +1146,11 @@
   // (oldest first). `achievements` is optional.
   // ==========================================================================
   const JOURNEY = [
-    { year: "TODO year", title: "TODO: education / first chapter", story: "TODO: 1–2 sentences on what you studied or started doing.", achievements: ["TODO: achievement"], todo: true },
-    { year: "TODO year", title: "TODO: first role", story: "TODO: 1–2 sentences on the role and the problem you solved.", achievements: ["TODO: achievement"], todo: true },
-    { year: "TODO year", title: "TODO: current role", story: "TODO: 1–2 sentences on what you're building now.", achievements: ["TODO: achievement"], todo: true },
+    { title: "Computer Engineering Technology", story: "My undergraduate degree, and where my path into tech began.", achievements: ["TODO: school name"] },
+    { year: "Since 2015", title: "IT Focal, Office of Civil Defense MIMAROPA", story: "I look after the regional office's IT and build the systems it runs on.", achievements: [] },
+    // 2018 is counted back from "8 years building" (as of 2026).
+    { year: "2018", title: "Started building my own projects", story: "I began developing small projects, which grew into the custom systems I build today.", achievements: [] },
+    { year: "Ongoing", title: "Master in Information Technology", story: "Currently pursuing my master's degree in IT.", achievements: ["TODO: school name"] },
   ];
 
   // ==========================================================================
@@ -1166,7 +1166,7 @@
   function renderJourney() {
     document.getElementById("journeyTrack").innerHTML = JOURNEY.map((c, i) => `
       <li class="card chapter${c.todo ? " is-todo" : ""}">
-        <div class="chapter-top"><span class="num">${String(i + 1).padStart(2, "0")}</span><span>${esc(c.year)}</span></div>
+        <div class="chapter-top"><span class="num">${String(i + 1).padStart(2, "0")}</span>${c.year ? `<span>${esc(c.year)}</span>` : ""}</div>
         <h3>${esc(c.title)}</h3>
         <p>${esc(c.story)}</p>
         ${c.achievements && c.achievements.length ? `<ul>${c.achievements.map(a => `<li>${esc(a)}</li>`).join("")}</ul>` : ""}
@@ -1258,8 +1258,18 @@
       const idx = Math.min(total, Math.round(track.scrollLeft / step()) + 1);
       if (count) count.textContent = total ? `${String(idx).padStart(2, "0")} / ${String(total).padStart(2, "0")}` : "";
     };
-    if (prev) prev.addEventListener("click", () => track.scrollBy({ left: -step(), behavior: prefersReducedMotion ? "auto" : "smooth" }));
-    if (next) next.addEventListener("click", () => track.scrollBy({ left: step(), behavior: prefersReducedMotion ? "auto" : "smooth" }));
+    // Step from the card we're heading to, so quick repeated clicks don't get lost mid-scroll.
+    let target = null, settle;
+    const go = (dir) => {
+      const max = track.scrollWidth - track.clientWidth;
+      const from = target ?? Math.round(track.scrollLeft / step()) * step();
+      target = Math.max(0, Math.min(max, from + dir * step()));
+      track.scrollTo({ left: target, behavior: prefersReducedMotion ? "auto" : "smooth" });
+      clearTimeout(settle);
+      settle = setTimeout(() => { target = null; }, 700);
+    };
+    if (prev) prev.addEventListener("click", () => go(-1));
+    if (next) next.addEventListener("click", () => go(1));
     track.addEventListener("scroll", () => requestAnimationFrame(update), { passive: true });
     track.addEventListener("keydown", (e) => {
       if (e.target !== track) return;
