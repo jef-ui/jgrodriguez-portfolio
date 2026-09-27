@@ -1,510 +1,990 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Jefrie Rodriguez | Full-Stack Web Developer</title>
 <meta name="description" content="Jefrie Rodriguez, full-stack web developer with a passion for solving real problems using Laravel, Node.js, and workflow automation." />
-<link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+<meta name="color-scheme" content="light dark" />
+<!-- Circular favicons cropped from assets/avatar.png -->
+<link rel="icon" href="assets/favicon.ico" sizes="16x16 32x32 48x48" />
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png" />
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
 <script>
   // Runs before first paint to avoid a flash of the wrong theme.
+  // Stored preference is "system" | "light" | "dark"; anything else means system.
   (function () {
-    var saved = localStorage.getItem("theme");
-    var isDark = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
-    document.documentElement.classList.toggle("dark", isDark);
+    var pref = "system";
+    try { pref = localStorage.getItem("theme") || "system"; } catch (e) {}
+    if (pref !== "light" && pref !== "dark") pref = "system";
+    var dark = pref === "dark" || (pref === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    var root = document.documentElement;
+    root.setAttribute("data-theme", dark ? "dark" : "light");
+    root.setAttribute("data-theme-pref", pref);
+    root.classList.add("js");
   })();
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;500&display=swap" />
 <style>
+  /* ==========================================================================
+     THEME TOKENS — switched with <html data-theme="light|dark">
+     --accent is the brand green for fills and marks; --accent-ink is the
+     AA-safe green for text and focus rings on the current background.
+     ========================================================================== */
   :root {
-    --bg: #f7f5ef;
-    --surface: #ffffff;
-    --text: #1c1b17;
-    --muted: #706d63;
-    --border: #e5e1d3;
-    --accent: #b8551f;
-    --accent-soft: rgba(184, 85, 31, 0.12);
-    --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
-    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+    --bg: #E8E8EB;
+    --ink: #4A2E3B;
+    --sub: #6F6570;
+    --line: #D2D0D6;
+    --surface: #FFFFFF;
+    --accent: #2FBF5B;
+    --accent-ink: #157034;
+    --on-accent: #0C0C0E;
+    --dot: transparent;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --side-w: 240px;
+    --bar-h: 56px;
+    --gutter: 16px;
+    --ease: cubic-bezier(.2, .7, .2, 1);
+
+    /* Aliases for the section styles carried over from the previous design. */
+    --text: var(--ink);
+    --muted: var(--sub);
+    --border: var(--line);
+    --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
   }
-  html.dark {
-    --bg: #15161b;
-    --surface: #1c1e24;
-    --text: #ece9e1;
-    --muted: #94918a;
-    --border: #2b2d34;
-    --accent: #e79c5c;
-    --accent-soft: rgba(231, 156, 92, 0.14);
+  :root[data-theme="dark"] {
+    --bg: #0C0C0E;
+    --ink: #EDEDEF;
+    --sub: #9A9AA2;
+    --line: #26262B;
+    --surface: #16161A;
+    --accent: #2FBF5B;
+    --accent-ink: #2FBF5B;
+    --dot: #1B1B20;
   }
+  @media (min-width: 640px) { :root { --gutter: 24px; } }
+
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; scroll-padding-top: calc(var(--bar-h) + 16px); -webkit-text-size-adjust: 100%; }
   body {
-    background: var(--bg);
-    color: var(--text);
+    background-color: var(--bg);
+    /* Dark theme only: a faint dotted "terminal paper" texture (--dot is transparent in light). */
+    background-image: radial-gradient(var(--dot) 1px, transparent 1.2px);
+    background-size: 22px 22px;
+    color: var(--ink);
     font-family: var(--sans);
-    line-height: 1.5;
+    font-weight: 400;
+    font-size: 1rem;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
-    transition: background 0.3s ease, color 0.3s ease;
+    overflow-x: hidden;
   }
+  /* Cross-fade colors only while the theme is being switched (class set by JS). */
+  html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
+    transition: background-color .35s ease, color .35s ease, border-color .35s ease, fill .35s ease !important;
+  }
+  html.scroll-lock, html.scroll-lock body { overflow: hidden; }
   a { color: inherit; }
-  img { max-width: 100%; display: block; }
-  button { font-family: inherit; }
+  img { max-width: 100%; display: block; height: auto; }
+  button { font: inherit; color: inherit; }
   ul, ol { list-style: none; margin: 0; padding: 0; }
+  :focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 3px; border-radius: 6px; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .skip-link {
+    position: absolute; left: 8px; top: -100px; z-index: 100;
+    background: var(--surface); color: var(--ink); border: 1px solid var(--line);
+    font-family: var(--mono); font-size: 13px; padding: 10px 14px; border-radius: 8px;
+  }
+  .skip-link:focus { top: 8px; }
+  .mono { font-family: var(--mono); }
+  .accent-dot { color: var(--accent); }
 
-  a:focus-visible,
-  button:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-    border-radius: 4px;
+  /* ==========================================================================
+     SHARED CONTROLS
+     ========================================================================== */
+  .icon-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; padding: 0;
+    border: 1px solid var(--line); border-radius: 999px;
+    background: var(--surface); color: var(--ink); cursor: pointer;
+  }
+  .icon-btn:hover { border-color: var(--ink); }
+  .icon-btn svg { width: 20px; height: 20px; }
+
+  .logo {
+    font-family: var(--sans); font-weight: 500; font-size: 1.35rem;
+    letter-spacing: -0.03em; text-decoration: none; color: var(--ink);
+    display: inline-flex; align-items: center; min-height: 44px;
   }
 
-  /* ---- Shell layout: fixed-width sidebar + flowing content ---- */
-  .shell {
-    display: flex;
-    min-height: 100vh;
-    max-width: 1180px;
-    margin: 0 auto;
+  /* Theme toggle: a 3-way segmented radio group (system / light / dark). */
+  .theme-switch {
+    display: inline-flex; gap: 2px; padding: 3px;
+    border: 1px solid var(--line); border-radius: 999px; background: var(--surface);
   }
-  .side {
-    width: 320px;
-    flex: 0 0 320px;
-    position: sticky;
-    top: 0;
-    align-self: flex-start;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 56px 40px 40px 24px;
-    border-right: 1px solid var(--border);
+  .theme-switch button {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 30px; padding: 0; border: 0; border-radius: 999px;
+    background: transparent; color: var(--sub); cursor: pointer;
   }
-  .side-avatar img {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1px solid var(--border);
+  .theme-switch button:hover { color: var(--ink); }
+  .theme-switch button[aria-checked="true"] { background: var(--ink); color: var(--bg); }
+  .theme-switch svg { width: 15px; height: 15px; }
+  .theme-switch.lg button { width: 56px; height: 44px; }
+  .theme-switch.lg svg { width: 18px; height: 18px; }
+
+  .kbd {
+    font-family: var(--mono); font-size: 11px; line-height: 1;
+    padding: 4px 6px; border: 1px solid var(--line); border-radius: 5px; color: var(--sub);
+    background: var(--bg);
   }
-  .side-name {
-    font-family: var(--mono);
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin: 18px 0 4px;
-    letter-spacing: -0.01em;
+
+  /* ==========================================================================
+     TOP BAR (< 1024px)
+     ========================================================================== */
+  .topbar {
+    position: sticky; top: 0; z-index: 30;
+    height: var(--bar-h);
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 0 var(--gutter);
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
   }
-  .side-role {
-    color: var(--accent);
-    font-weight: 600;
-    font-size: 0.92rem;
-    margin: 0 0 14px;
-  }
-  .side-tag {
-    color: var(--muted);
-    font-size: 0.86rem;
-    line-height: 1.55;
-    max-width: 30ch;
-    margin: 0;
-  }
-  .side-nav { margin-top: 44px; }
-  .side-nav ol { display: flex; flex-direction: column; gap: 2px; }
+  .topbar-actions { display: flex; gap: 8px; }
+  .topbar .icon-btn { border-color: transparent; background: transparent; }
+  .topbar .icon-btn:hover { border-color: var(--line); }
+
+  /* ==========================================================================
+     SIDEBAR (>= 1024px)
+     ========================================================================== */
+  .sidebar { display: none; }
   .side-nav a {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    padding: 9px 0;
-    color: var(--muted);
-    text-decoration: none;
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    transition: color 0.15s ease, transform 0.15s ease;
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 10px; margin: 0 -10px; border-radius: 8px;
+    font-family: var(--mono); font-size: 13px; color: var(--sub); text-decoration: none;
   }
-  .nav-num { font-family: var(--mono); color: var(--muted); font-size: 0.7rem; transition: color 0.15s ease; }
-  .side-nav a:hover,
-  .side-nav a.active { color: var(--text); transform: translateX(3px); }
-  .side-nav a:hover .nav-num,
-  .side-nav a.active .nav-num { color: var(--accent); }
+  .side-nav a svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .side-nav a:hover { color: var(--ink); background: var(--surface); }
+  .side-nav a.active { color: var(--ink); }
+  .side-nav a.active svg { color: var(--accent-ink); }
 
-  .side-bottom { display: flex; flex-direction: column; gap: 18px; }
-  .icon-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-  .icon-link {
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    transition: color 0.15s ease, transform 0.15s ease;
-  }
-  .icon-link svg { width: 18px; height: 18px; }
-  .icon-link .social-badge { font-family: var(--mono); font-weight: 700; font-size: 0.85rem; }
-  .icon-link:hover { color: var(--accent); transform: translateY(-2px); }
-
-  .theme-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text);
-    cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease, transform 0.3s ease;
-  }
-  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); transform: rotate(15deg); }
-
-  /* ---- Main content ---- */
-  .content { flex: 1; min-width: 0; padding: 64px 40px 120px 48px; max-width: 720px; }
-  .block { margin-bottom: 88px; scroll-margin-top: 32px; }
-  .block-heading {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    font-family: var(--mono);
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text);
-    margin: 0 0 28px;
-  }
-  .heading-num { color: var(--accent); }
-  .block-heading::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-    margin-left: 4px;
-  }
-
-  .lede {
-    font-size: 1.2rem;
-    line-height: 1.55;
-    color: var(--text);
-    margin: 0 0 20px;
-    max-width: 58ch;
-  }
-  .body-text {
-    color: var(--muted);
-    font-size: 0.98rem;
-    line-height: 1.7;
-    max-width: 60ch;
-    margin: 0 0 24px;
-  }
-  .cta-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-family: var(--mono);
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: var(--accent);
-    text-decoration: none;
-    border-bottom: 1px solid transparent;
-    padding-bottom: 2px;
-    transition: border-color 0.15s ease;
-  }
-  .cta-link svg { width: 15px; height: 15px; transition: transform 0.2s ease; }
-  .cta-link:hover { border-color: var(--accent); }
-  .cta-link:hover svg { transform: translateX(4px); }
-
-  /* ---- Specialties: chip toggle + chip row ---- */
-  .chip-toggle { display: flex; gap: 8px; margin-bottom: 20px; }
-  .chip-toggle button {
-    font-family: var(--mono);
-    font-size: 0.76rem;
-    padding: 6px 14px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-  }
-  .chip-toggle button:hover { border-color: var(--accent); color: var(--text); }
-  .chip-toggle button[aria-pressed="true"] {
-    color: var(--bg);
-    background: var(--text);
-    border-color: var(--text);
-  }
-
-  .chip-row { display: flex; flex-wrap: wrap; gap: 10px; }
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    padding: 7px 14px 7px 7px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    font-size: 0.84rem;
-    color: var(--text);
-    transition: border-color 0.15s ease, transform 0.15s ease;
-  }
-  .chip:hover { border-color: var(--accent); transform: translateY(-1px); }
-  .chip-icon {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: var(--accent-soft);
-    color: var(--accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .tech-icon { display: block; flex-shrink: 0; }
-  .tech-badge {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    font-weight: 700;
-    line-height: 1;
-    flex-shrink: 0;
-  }
-
-  /* ---- Work list ---- */
-  .filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
-  .filter-chip {
-    font-family: var(--mono);
-    font-size: 0.74rem;
-    padding: 5px 13px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-  }
-  .filter-chip:hover { border-color: var(--accent); }
-  .filter-chip[aria-pressed="true"] {
-    background: var(--accent-soft);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
-  .work-list { display: flex; flex-direction: column; margin-top: 12px; }
-  .work-item {
-    display: grid;
-    grid-template-columns: 44px 128px 1fr;
-    gap: 18px;
-    padding: 24px 16px;
-    margin: 0 -16px;
-    border-top: 1px solid var(--border);
-    border-radius: 8px;
-    transition: background 0.15s ease;
-  }
-  .work-item.no-thumb { grid-template-columns: 44px 1fr; }
-  .work-list .work-item:last-child { border-bottom: 1px solid var(--border); }
-  .work-item:hover { background: var(--surface); }
-  .work-num { font-family: var(--mono); color: var(--muted); font-size: 0.78rem; padding-top: 3px; }
-  .work-thumb {
-    width: 100%;
-    aspect-ratio: 4 / 3;
-    border-radius: 8px;
-    border: 1px dashed var(--border);
-    background: var(--surface);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-  .work-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .work-note {
-    margin-top: 18px;
-    color: var(--muted);
-    font-size: 0.82rem;
-    font-style: italic;
-  }
-  @media (max-width: 640px) {
-    .work-item { grid-template-columns: 1fr; }
-    .work-thumb { aspect-ratio: 16 / 9; }
-  }
-  .work-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
-  .work-title { font-size: 1.02rem; font-weight: 700; margin: 0; }
-  .work-cat {
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--accent);
-    border: 1px solid var(--accent);
-    border-radius: 4px;
-    padding: 2px 6px;
-  }
-  .work-desc { color: var(--muted); font-size: 0.9rem; line-height: 1.65; margin: 0 0 14px; max-width: 56ch; }
-  .work-stack { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-  .work-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 12px;
-    font-family: var(--mono);
-    font-size: 0.8rem;
-    color: var(--text);
-    text-decoration: none;
-    border-bottom: 1px solid var(--text);
-  }
-
-  .foot {
-    font-family: var(--mono);
-    font-size: 0.74rem;
-    color: var(--muted);
-    padding-top: 32px;
-    margin-top: 8px;
-    border-top: 1px solid var(--border);
-  }
-
-  /* ---- Mobile: sidebar collapses to a top block, nav goes horizontal ---- */
-  @media (max-width: 860px) {
-    .shell { flex-direction: column; max-width: 100%; }
-    .side {
-      width: 100%;
-      flex: none;
-      position: static;
-      height: auto;
-      border-right: none;
-      border-bottom: 1px solid var(--border);
-      padding: 40px 24px 28px;
-      gap: 24px;
+  @media (min-width: 1024px) {
+    .topbar { display: none; }
+    .sidebar {
+      position: fixed; inset: 0 auto 0 0; z-index: 30;
+      width: var(--side-w);
+      display: flex; flex-direction: column;
+      padding: 28px 24px 24px;
+      border-right: 1px solid var(--line);
+      background: var(--bg);
+      overflow-y: auto;
     }
-    .side-nav { margin-top: 8px; }
-    .side-nav ol { flex-direction: row; flex-wrap: wrap; gap: 8px; }
-    .side-nav a { padding: 6px 12px; border: 1px solid var(--border); border-radius: 999px; }
-    .side-nav a:hover, .side-nav a.active { border-color: var(--accent); transform: none; }
-    .content { max-width: 100%; padding: 48px 24px 100px; }
+    .sidebar .logo { margin-bottom: 28px; }
+    .side-divider { border: 0; border-top: 1px solid var(--line); margin: 20px 0; }
+    .search-hint {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%;
+      padding: 8px 10px; margin: 0 -10px; width: calc(100% + 20px);
+      border: 0; border-radius: 8px; background: transparent; cursor: pointer;
+      font-family: var(--mono); font-size: 13px; color: var(--sub);
+    }
+    .search-hint:hover { background: var(--surface); color: var(--ink); }
+    .search-hint .keys { display: inline-flex; gap: 4px; align-items: center; }
+    .side-theme { margin-top: 16px; }
+    .side-foot { margin-top: auto; padding-top: 24px; }
+    .label {
+      font-family: var(--mono); font-size: 11px; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--sub); margin: 0 0 4px;
+    }
+    .side-foot a {
+      font-family: var(--mono); font-size: 12px; color: var(--ink);
+      text-decoration: none; word-break: break-all;
+    }
+    .side-foot a:hover { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 3px; }
   }
 
-  /* ---- Click ripple ---- */
-  .cta-link, .chip-toggle button, .filter-chip, .theme-toggle, .icon-link, .work-link {
-    position: relative;
-    overflow: hidden;
+  /* ==========================================================================
+     MOBILE / TABLET MENU — full-screen <dialog>
+     ========================================================================== */
+  dialog { color: var(--ink); }
+  .menu {
+    width: 100%; height: 100%; max-width: none; max-height: none;
+    margin: 0; padding: 0; border: 0;
+    background: var(--bg);
   }
-  .ripple {
-    position: absolute;
-    border-radius: 50%;
-    transform: scale(0);
-    pointer-events: none;
-    animation: ripple-anim 0.6s ease-out;
+  .menu::backdrop { background: var(--bg); }
+  .menu-inner {
+    min-height: 100%;
+    display: flex; flex-direction: column;
+    padding: 0 var(--gutter) 32px;
   }
-  @keyframes ripple-anim {
-    to { transform: scale(1); opacity: 0; }
+  .menu-head {
+    height: var(--bar-h); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+    margin: 0 calc(var(--gutter) * -1); padding: 0 var(--gutter);
+  }
+  .menu-head .icon-btn { border-color: transparent; background: transparent; }
+  .menu-nav { padding: 24px 0; }
+  .menu-nav a {
+    display: flex; align-items: baseline; gap: 14px;
+    min-height: 56px; padding: 10px 0;
+    font-size: 1.6rem; font-weight: 500; letter-spacing: -0.02em;
+    text-decoration: none; border-bottom: 1px solid var(--line);
+  }
+  .menu-nav a span { font-family: var(--mono); font-size: 12px; color: var(--sub); letter-spacing: 0; }
+  .menu-nav a:hover, .menu-nav a.active { color: var(--accent-ink); }
+  .menu-social { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-bottom: 28px; }
+  .menu-foot { margin-top: auto; display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
+
+  .social-links { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+  .social-links a {
+    display: inline-flex; align-items: center; min-height: 44px;
+    font-family: var(--mono); font-size: 13px; color: var(--sub); text-decoration: none;
+  }
+  .social-links a::after { content: "\2197"; margin-left: 4px; }
+  .social-links a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+
+  /* ==========================================================================
+     COMMAND PALETTE — <dialog>, opened with Alt + K or the search buttons
+     ========================================================================== */
+  .palette {
+    width: min(560px, calc(100% - 32px)); max-height: min(480px, calc(100% - 32px));
+    margin: 12vh auto auto; padding: 0;
+    border: 1px solid var(--line); border-radius: 14px;
+    background: var(--surface); overflow: hidden;
+  }
+  .palette::backdrop { background: rgba(12, 12, 14, .45); }
+  .palette-field {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 16px; border-bottom: 1px solid var(--line);
+  }
+  .palette-field svg { width: 18px; height: 18px; color: var(--sub); flex-shrink: 0; }
+  .palette input {
+    flex: 1; min-width: 0; height: 56px; border: 0; background: transparent;
+    font: 400 16px var(--sans); color: var(--ink);
+  }
+  .palette input:focus { outline: none; }
+  .palette ul { padding: 8px; max-height: 360px; overflow-y: auto; }
+  .palette li {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    min-height: 44px; padding: 8px 12px; border-radius: 8px; cursor: pointer;
+  }
+  .palette li small { font-family: var(--mono); font-size: 11px; color: var(--sub); text-transform: uppercase; letter-spacing: .06em; }
+  .palette li[aria-selected="true"] { background: var(--bg); }
+  .palette li[aria-selected="true"] small { color: var(--accent-ink); }
+  .palette-empty { padding: 16px 12px; color: var(--sub); font-size: 14px; margin: 0; }
+
+  /* ==========================================================================
+     MAIN COLUMN
+     ========================================================================== */
+  .main { padding: 0 var(--gutter) 120px; }
+  .container { max-width: 780px; margin: 0 auto; }
+  @media (min-width: 1024px) {
+    .main { margin-left: var(--side-w); padding: 0 48px 140px; }
+  }
+
+  /* ==========================================================================
+     HERO
+     ========================================================================== */
+  .hero {
+    display: grid; gap: 28px;
+    padding: 32px 0 40px;
+  }
+  /* Portrait: full-color photo in a card, with a fine dot screen over it so it
+     reads like print and echoes the dotted texture used across the site. */
+  .hero-photo {
+    width: min(62%, 240px); margin: 0; padding: 10px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+  }
+  .hero-photo picture { position: relative; display: block; border-radius: 10px; overflow: hidden; }
+  .hero-photo picture::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background-image: radial-gradient(rgba(12, 12, 14, .28) 0.9px, transparent 1.1px);
+    background-size: 4px 4px;
+  }
+  .hero-photo img { width: 100%; aspect-ratio: 4 / 5; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--sub); margin: 0 0 14px;
+  }
+  .hero h1 {
+    font-size: clamp(2.25rem, 5vw, 4rem);
+    font-weight: 500; line-height: 1; letter-spacing: -0.04em;
+    margin: 0 0 20px;
+  }
+  .hero-intro { color: var(--sub); font-size: 1.0625rem; line-height: 1.6; max-width: 48ch; margin: 0 0 28px; }
+  .hero-intro p { margin: 0 0 12px; }
+  .hero-intro p:last-child { margin: 0; }
+  .cta {
+    display: inline-flex; align-items: center; gap: 14px;
+    min-height: 52px; text-decoration: none;
+    font-size: 1.0625rem; font-weight: 500;
+  }
+  .cta-arrow {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 52px; height: 52px; border-radius: 999px;
+    background: var(--accent); color: var(--on-accent);
+    transition: transform .25s var(--ease);
+  }
+  .cta-arrow svg { width: 20px; height: 20px; }
+  .cta:hover .cta-arrow { transform: translateX(4px); }
+  .cta:hover .cta-text { text-decoration: underline; text-underline-offset: 5px; }
+  .hero .social-links { margin-top: 20px; }
+
+  @media (min-width: 640px) {
+    .hero { grid-template-columns: minmax(180px, 4fr) 7fr; align-items: center; gap: 40px; padding: 56px 0 56px; }
+    .hero-photo { width: 100%; }
+  }
+  @media (min-width: 1024px) {
+    .hero { padding: 88px 0 64px; min-height: 0; }
+  }
+
+  /* ==========================================================================
+     SDLC STRIP — vertical on narrow columns, horizontal once the column is
+     wide enough (container query). Dashes march along the line.
+     ========================================================================== */
+  .sdlc { container-type: inline-size; margin: 0 0 40px; }
+  .sdlc .eyebrow { margin-bottom: 18px; }
+  .sdlc-steps { display: grid; }
+  .sdlc-steps li { position: relative; display: flex; align-items: center; gap: 14px; min-height: 60px; }
+  .sdlc-num {
+    position: relative; z-index: 1; flex-shrink: 0;
+    display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%;
+    background: var(--ink); color: var(--bg);
+    font-family: var(--mono); font-size: 12px; font-weight: 500;
+  }
+  .sdlc-label { font-size: 1rem; font-weight: 500; letter-spacing: -0.01em; }
+  /* Dashed connector (down) + arrow head at the midpoint between two circles. */
+  .sdlc-steps li:not(:last-child)::before {
+    content: ""; position: absolute; left: 17px; top: calc(50% + 20px); bottom: calc(-50% + 20px); width: 2px;
+    background: repeating-linear-gradient(180deg, var(--accent) 0 5px, transparent 5px 10px);
+  }
+  .sdlc-steps li:not(:last-child)::after {
+    content: ""; position: absolute; left: 12px; bottom: -5px; z-index: 1;
+    border-top: 9px solid var(--accent); border-left: 6px solid transparent; border-right: 6px solid transparent;
+  }
+  @container (min-width: 640px) {
+    .sdlc-steps { grid-template-columns: repeat(7, 1fr); }
+    .sdlc-steps li { flex-direction: column; gap: 10px; text-align: center; min-height: 0; }
+    .sdlc-label { font-size: .875rem; }
+    .sdlc-steps li:not(:last-child)::before {
+      left: calc(50% + 22px); right: calc(-50% + 22px); top: 17px; bottom: auto; width: auto; height: 2px;
+      background: repeating-linear-gradient(90deg, var(--accent) 0 6px, transparent 6px 12px);
+    }
+    .sdlc-steps li:not(:last-child)::after {
+      left: auto; right: -5px; top: 12px; bottom: auto;
+      border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 10px solid var(--accent); border-right: 0;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .sdlc-steps li::before { animation: sdlc-v 1s linear infinite; }
+    @container (min-width: 640px) { .sdlc-steps li::before { animation-name: sdlc-h; } }
+    /* Steps appear one after another when the strip scrolls into view. */
+    .js .sdlc-steps li { opacity: 0; transform: translateY(8px); transition: opacity .5s var(--ease), transform .5s var(--ease); transition-delay: calc(var(--i) * 90ms); }
+    .js .sdlc.visible .sdlc-steps li { opacity: 1; transform: none; }
+  }
+  @keyframes sdlc-v { to { background-position: 0 10px; } }
+  @keyframes sdlc-h { to { background-position: 12px 0; } }
+
+  /* ==========================================================================
+     STAT STRIP
+     ========================================================================== */
+  .stats {
+    display: grid; grid-template-columns: 1fr 1fr;
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    margin: 0 0 32px;
+  }
+  .stat { padding: 20px 0; }
+  .stat:nth-child(2) { padding-left: 20px; border-left: 1px solid var(--line); }
+  .stat:nth-child(3) { grid-column: 1 / -1; border-top: 1px solid var(--line); }
+  .stat-num { display: block; font-size: 2.5rem; font-weight: 500; letter-spacing: -0.04em; line-height: 1.1; }
+  .stat-num.todo { color: var(--sub); }
+  .stat-cap {
+    display: block; margin-top: 6px;
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--sub);
+  }
+  @media (min-width: 640px) {
+    .stats { grid-template-columns: repeat(3, 1fr); }
+    .stat { padding: 24px 24px; }
+    .stat:first-child { padding-left: 0; }
+    .stat:nth-child(3) { grid-column: auto; border-top: 0; border-left: 1px solid var(--line); }
+    .stat-num { font-size: 3rem; }
+  }
+
+  /* ==========================================================================
+     GITHUB CONTRIBUTIONS — live graph fetched on load, whole card links to GitHub
+     ========================================================================== */
+  .gh {
+    display: block; margin: 0 0 72px; padding: 18px 18px 14px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    text-decoration: none;
+  }
+  .gh:hover { border-color: var(--sub); }
+  .gh-head {
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px;
+    font-family: var(--mono); font-size: 12px; color: var(--sub); margin-bottom: 14px;
+  }
+  .gh-head strong { font-family: var(--sans); font-weight: 500; font-size: 1rem; color: var(--ink); }
+  .gh-sub { font-family: var(--mono); font-weight: 400; font-size: 12px; color: var(--sub); }
+  .gh-head .gh-go::after { content: " \2197"; }
+  .gh:hover .gh-go { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+  /* Scrolls inside the card on narrow screens (starts at the newest week); the page never scrolls sideways. */
+  .gh-scroll { overflow-x: auto; scrollbar-width: none; }
+  .gh-scroll::-webkit-scrollbar { display: none; }
+  .gh-months, .gh-grid { --cell: 10px; --gap: 3px; display: grid; grid-auto-columns: var(--cell); gap: var(--gap); width: max-content; }
+  .gh-months { grid-auto-flow: column; height: 16px; font-family: var(--mono); font-size: 10px; color: var(--sub); }
+  .gh-months span { white-space: nowrap; }
+  .gh-grid { grid-template-rows: repeat(7, var(--cell)); grid-auto-flow: column; }
+  /* Light theme: black-and-white scale; dark theme: green. */
+  .gh { --gh-ink: #111111; }
+  :root[data-theme="dark"] .gh { --gh-ink: var(--accent); }
+  .gh-grid i, .gh-legend i { border-radius: 2px; background: var(--line); }
+  .gh i[data-l="1"] { background: color-mix(in srgb, var(--gh-ink) 35%, var(--surface)); }
+  .gh i[data-l="2"] { background: color-mix(in srgb, var(--gh-ink) 60%, var(--surface)); }
+  .gh i[data-l="3"] { background: color-mix(in srgb, var(--gh-ink) 80%, var(--surface)); }
+  .gh i[data-l="4"] { background: var(--gh-ink); }
+  .gh-grid i.pad { visibility: hidden; }
+  .gh-legend { display: flex; align-items: center; justify-content: flex-end; gap: 3px; margin-top: 10px; font-family: var(--mono); font-size: 11px; color: var(--sub); }
+  .gh-legend i { width: 10px; height: 10px; }
+  .gh-legend span { margin: 0 4px; }
+  .gh[data-state="error"] .gh-scroll, .gh[data-state="error"] .gh-legend { display: none; }
+  @media (min-width: 1024px) { .gh-months, .gh-grid { --cell: 11px; } }
+
+  /* ==========================================================================
+     SCROLL REVEAL — only when JS is running and motion is allowed
+     ========================================================================== */
+  @media (prefers-reduced-motion: no-preference) {
+    .js .reveal { opacity: 0; transform: translateY(16px); transition: opacity .6s var(--ease), transform .6s var(--ease); }
+    .js .reveal.visible { opacity: 1; transform: none; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .side-nav a, .cta-link, .cta-link svg, .chip, .theme-toggle, .icon-link { transition: none; }
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+
+  /* ==========================================================================
+     SECTIONS — shared header: "01 — journey" ............ ALL → / arrows
+     ========================================================================== */
+  .section { padding-top: 24px; margin-bottom: 96px; }
+  .sec-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding-bottom: 14px; margin-bottom: 28px; border-bottom: 1px solid var(--line);
+  }
+  .sec-title {
+    margin: 0; font-family: var(--mono); font-weight: 400; font-size: 13px;
+    color: var(--sub); letter-spacing: .02em;
+  }
+  .sec-title b { font-weight: 400; color: var(--ink); }
+  .sec-tools { display: flex; align-items: center; gap: 8px; }
+  .sec-link {
+    display: inline-flex; align-items: center; min-height: 44px;
+    font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--ink); text-decoration: none;
+  }
+  .sec-link:hover { color: var(--accent-ink); }
+  .arrows { display: none; gap: 8px; }
+  .arrows .icon-btn { width: 40px; height: 40px; }
+  .arrows .icon-btn svg { width: 18px; height: 18px; }
+  .arrows .icon-btn:disabled { opacity: .35; cursor: default; border-color: var(--line); }
+  .arrows .prev svg { transform: scaleX(-1); }
+  @media (min-width: 640px) { .arrows { display: inline-flex; } }
+  .count { font-family: var(--mono); font-size: 12px; color: var(--sub); min-width: 5ch; text-align: right; }
+
+  .lede { font-size: clamp(1.25rem, 3vw, 1.6rem); line-height: 1.4; letter-spacing: -0.015em; margin: 0 0 16px; max-width: 34ch; }
+  .body-text { color: var(--sub); line-height: 1.7; max-width: 62ch; margin: 0 0 36px; }
+  .body-text p { margin: 0 0 14px; }
+  .body-text p:last-child { margin: 0; }
+  .br-wide { display: none; }
+  @media (min-width: 640px) { .br-wide { display: inline; } }
+
+  /* ==========================================================================
+     SLIDER — horizontal scroll-snap track (swipe on touch, arrows on desktop)
+     ========================================================================== */
+  .slider {
+    display: flex; gap: 16px;
+    overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; scroll-behavior: smooth;
+    scrollbar-width: none;
+    /* Let cards bleed to the screen edge on mobile while staying aligned with the column. */
+    margin: 0 calc(var(--gutter) * -1); padding: 4px var(--gutter) 8px;
+    scroll-padding-inline: var(--gutter);
+  }
+  .slider::-webkit-scrollbar { display: none; }
+  .slider > * { flex: 0 0 86%; scroll-snap-align: start; min-width: 0; }
+  @media (min-width: 640px) { .slider > * { flex-basis: calc((100% - 16px) / 2); } }
+  @media (min-width: 1024px) { .slider { margin: 0; padding: 4px 0 8px; scroll-padding-inline: 0; } }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+    transition: border-color .2s ease, transform .3s var(--ease);
+  }
+  .card:hover { border-color: var(--sub); }
+
+  /* Journey chapters */
+  .chapter { padding: 22px; display: flex; flex-direction: column; gap: 10px; }
+  .chapter-top { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; color: var(--sub); }
+  .chapter-top .num { color: var(--accent-ink); }
+  .chapter h3 { margin: 4px 0 0; font-size: 1.35rem; font-weight: 500; letter-spacing: -0.02em; line-height: 1.2; }
+  .chapter p { margin: 0; color: var(--sub); }
+  .chapter ul { display: grid; gap: 6px; margin-top: 6px; padding-top: 12px; border-top: 1px dashed var(--line); }
+  .chapter li { font-family: var(--mono); font-size: 12px; color: var(--sub); padding-left: 16px; position: relative; }
+  .chapter li::before { content: "+"; position: absolute; left: 0; color: var(--accent-ink); }
+  .is-todo { border-style: dashed; }
+
+  /* ==========================================================================
+     WORK — project cards
+     ========================================================================== */
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .chip-btn {
+    min-height: 36px; padding: 0 14px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--line); background: transparent; color: var(--sub);
+    font-family: var(--mono); font-size: 12px;
+  }
+  .chip-btn:hover { color: var(--ink); border-color: var(--sub); }
+  .chip-btn[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  @media (pointer: coarse) { .chip-btn { min-height: 44px; } }
+
+  .wcard { display: flex; flex-direction: column; overflow: hidden; }
+  .wthumb {
+    position: relative; aspect-ratio: 16 / 10; overflow: hidden;
+    border-bottom: 1px solid var(--line); background: var(--bg);
+  }
+  .wthumb img { width: 100%; height: 100%; object-fit: cover; object-position: top center; transition: transform .6s var(--ease); }
+  .wcard:hover .wthumb img { transform: scale(1.03); }
+  .wthumb.empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+    background-image: radial-gradient(var(--line) 1px, transparent 1.2px); background-size: 14px 14px;
+    text-align: center; padding: 16px;
+  }
+  .wthumb.empty strong { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 500; letter-spacing: -0.03em; background: var(--bg); padding: 0 8px; }
+  .wthumb.empty span { font-family: var(--mono); font-size: 11px; color: var(--sub); background: var(--bg); padding: 0 6px; }
+  .wbody { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .wcat { margin: 0; font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--sub); }
+  .wcat b { font-weight: 400; color: var(--accent-ink); }
+  .wcard h3 { margin: 0; font-size: 1.2rem; font-weight: 500; letter-spacing: -0.015em; line-height: 1.25; }
+  .wline { margin: 0; color: var(--sub); font-size: .95rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .wstack { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .wactions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; margin-top: auto; padding-top: 8px; border-top: 1px solid var(--line); }
+  .disclose {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0;
+    border: 0; background: none; cursor: pointer;
+    font-family: var(--mono); font-size: 12px; color: var(--ink);
+  }
+  .disclose .plus { display: inline-block; color: var(--accent-ink); font-size: 16px; line-height: 1; transition: transform .25s var(--ease); }
+  .disclose[aria-expanded="true"] .plus { transform: rotate(45deg); }
+  .wlink { display: inline-flex; align-items: center; min-height: 44px; font-family: var(--mono); font-size: 12px; color: var(--accent-ink); text-decoration: none; }
+  .wlink::after { content: "\2197"; margin-left: 4px; }
+  .wlink:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .wdetail { color: var(--sub); font-size: .92rem; line-height: 1.65; margin: 0; }
+  .wdetail[hidden] { display: none; }
+  .work-note { margin: 16px 0 0; font-family: var(--mono); font-size: 12px; color: var(--sub); max-width: 70ch; }
+
+  /* ==========================================================================
+     STACK — skill cards + moving tool marquee
+     ========================================================================== */
+  .skills { display: grid; gap: 12px; margin-bottom: 28px; }
+  @media (min-width: 640px) { .skills { grid-template-columns: repeat(3, 1fr); } }
+  .skill { padding: 14px 16px; display: flex; align-items: center; gap: 14px; }
+  @media (min-width: 640px) { .skill { padding: 18px; flex-direction: column; align-items: flex-start; } }
+  .skill-icon {
+    width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center; color: var(--accent-ink);
+  }
+  .skill-icon svg { width: 20px; height: 20px; }
+  .skill h3 { margin: 0; font-size: 1.05rem; font-weight: 500; }
+
+  .marquee { display: grid; gap: 10px; overflow: hidden; margin: 0 calc(var(--gutter) * -1); }
+  @media (min-width: 1024px) { .marquee { margin: 0; } }
+  .marquee-row { display: flex; width: max-content; }
+  .marquee-row ul { display: flex; gap: 10px; padding-right: 10px; }
+  .tool {
+    display: inline-flex; align-items: center; gap: 10px; white-space: nowrap;
+    height: 44px; padding: 0 16px 0 12px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--surface);
+    font-family: var(--mono); font-size: 12px; color: var(--ink);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .marquee-row { animation: marquee 40s linear infinite; }
+    .marquee-row.rev { animation-direction: reverse; animation-duration: 46s; }
+    .marquee:hover .marquee-row, .marquee:focus-within .marquee-row { animation-play-state: paused; }
+  }
+  @keyframes marquee { to { transform: translateX(-50%); } }
+  /* Without motion the duplicate copy is dropped and the chips simply wrap. */
+  @media (prefers-reduced-motion: reduce) {
+    .marquee { margin: 0; }
+    .marquee-row { width: auto; }
+    .marquee-row ul { flex-wrap: wrap; }
+    .marquee-row [aria-hidden="true"] { display: none; }
+  }
+  .tech-icon { display: block; flex-shrink: 0; }
+  .tech-badge { display: flex; align-items: center; justify-content: center; border-radius: 50%; font-family: var(--mono); font-weight: 500; line-height: 1; flex-shrink: 0; }
+
+  /* ==========================================================================
+     CERTIFICATIONS
+     ========================================================================== */
+  .certs { display: grid; gap: 12px; }
+  @media (min-width: 640px) { .certs { grid-template-columns: 1fr 1fr; } }
+  .cert { display: flex; gap: 14px; align-items: flex-start; padding: 18px; }
+  .cert .skill-icon { flex-shrink: 0; }
+  .cert h3 { margin: 0 0 4px; font-size: 1rem; font-weight: 500; }
+  .cert p { margin: 0; font-family: var(--mono); font-size: 12px; color: var(--sub); }
+
+  /* ==========================================================================
+     CONTACT
+     ========================================================================== */
+  .contact h2.big {
+    margin: 0 0 16px; font-size: clamp(3rem, 11vw, 6rem); font-weight: 500;
+    letter-spacing: -0.05em; line-height: .95;
+  }
+  .contact .body-text { margin-bottom: 24px; }
+  .contact-email {
+    display: inline-block; margin-bottom: 28px; font-size: clamp(1.1rem, 4.2vw, 1.75rem); font-weight: 500;
+    letter-spacing: -0.02em; color: var(--ink); text-decoration: underline; text-decoration-color: var(--accent);
+    text-decoration-thickness: 2px; text-underline-offset: 6px; word-break: break-all;
+  }
+  .contact-email:hover { color: var(--accent-ink); }
+  .contact-list { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line); margin-top: 36px; }
+  @media (min-width: 640px) { .contact-list { grid-template-columns: repeat(3, 1fr); } }
+  .contact-list a {
+    display: flex; flex-direction: column; justify-content: center; gap: 2px; min-height: 64px; padding: 10px 12px 10px 0;
+    border-bottom: 1px solid var(--line); text-decoration: none;
+  }
+  .contact-list small { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--sub); }
+  .contact-list span { font-family: var(--mono); font-size: 13px; overflow-wrap: anywhere; }
+  .contact-list a:hover span { color: var(--accent-ink); }
+  .contact-list span::after { content: " \2197"; color: var(--sub); }
+
+  /* ==========================================================================
+     FOOTER + SCROLL PILL
+     ========================================================================== */
+  .footer {
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px;
+    padding: 24px var(--gutter) 32px; border-top: 1px solid var(--line);
+    font-family: var(--mono); font-size: 12px; color: var(--sub);
+  }
+  .footer a { color: var(--sub); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
+  .footer a:hover { color: var(--ink); }
+  .footer p { margin: 0; display: flex; align-items: center; min-height: 44px; }
+  @media (min-width: 1024px) { .footer { margin-left: var(--side-w); padding: 24px 48px 32px; } }
+
+  .pill {
+    position: fixed; z-index: 20; bottom: 12px; left: 12px; right: 12px;
+    display: flex; flex-direction: column; overflow: hidden;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
+    text-decoration: none; transition: opacity .3s ease, transform .3s var(--ease);
+  }
+  .pill-text {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    height: 42px; padding: 0 18px; font-family: var(--mono); font-size: 12px; color: var(--ink);
+  }
+  .pill-text svg { width: 14px; height: 14px; transform: rotate(90deg); color: var(--accent-ink); }
+  .pill-bar { height: 3px; background: var(--line); }
+  .pill-bar i { display: block; height: 100%; background: var(--accent); transform-origin: left; transform: scaleX(0); }
+  .pill.is-hidden { opacity: 0; transform: translateY(12px); pointer-events: none; }
+  @media (min-width: 640px) {
+    .pill { left: 50%; right: auto; width: 260px; transform: translateX(-50%); }
+    .pill.is-hidden { transform: translate(-50%, 12px); }
+  }
+  @media (min-width: 1024px) {
+    .pill { left: calc(50% + var(--side-w) / 2); }
   }
 </style>
 </head>
 <body>
 
-<div class="shell">
+<a class="skip-link" href="#main">Skip to content</a>
 
-  <!-- ===================== SIDEBAR ===================== -->
-  <header class="side">
-    <div class="side-top">
-      <a href="#top" class="side-avatar" aria-label="Jefrie Rodriguez, home">
-        <img src="assets/profile.png" alt="Photo of Jefrie Rodriguez" />
-      </a>
-      <h1 class="side-name">Jefrie Rodriguez</h1>
-      <p class="side-role">Full-Stack Web Developer</p>
-      <p class="side-tag">Problem solver. I use technology to fix real, operational problems.</p>
+<!-- Outline icon sprite, referenced with <use href="#i-..."> -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <g id="i-about" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></g>
+    <g id="i-journey" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h8a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h8"/></g>
+    <g id="i-work" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/></g>
+    <g id="i-stack" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 8l10 5 10-5-10-5z"/><path d="m2 13 10 5 10-5"/></g>
+    <g id="i-cert" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><path d="M8.5 14 7 22l5-3 5 3-1.5-8"/></g>
+    <g id="i-mail" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></g>
+    <g id="i-search" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></g>
+    <g id="i-menu" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 8h16M4 16h16"/></g>
+    <g id="i-close" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></g>
+    <g id="i-system" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></g>
+    <g id="i-sun" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></g>
+    <g id="i-moon" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></g>
+    <g id="i-arrow" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></g>
+  </defs>
+</svg>
 
-      <nav class="side-nav" aria-label="Primary" id="sideNav">
-        <ol>
-          <li><a href="#about"><span class="nav-num">01</span>About</a></li>
-          <li><a href="#specialties"><span class="nav-num">02</span>Specialties</a></li>
-          <li><a href="#work"><span class="nav-num">03</span>Projects</a></li>
-          <li><a href="#contact"><span class="nav-num">04</span>Contact</a></li>
-        </ol>
-      </nav>
+<!-- ===================== TOP BAR (mobile + tablet) ===================== -->
+<header class="topbar">
+  <a class="logo" href="#about">jefrie<span class="accent-dot">.</span></a>
+  <div class="topbar-actions">
+    <button type="button" class="icon-btn" data-open-palette aria-label="Search sections">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-search"/></svg>
+    </button>
+    <button type="button" class="icon-btn" id="menuOpen" aria-label="Open menu" aria-haspopup="dialog" aria-expanded="false" aria-controls="menu">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-menu"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- ===================== SIDEBAR (desktop) ===================== -->
+<aside class="sidebar" aria-label="Site">
+  <a class="logo" href="#about">jefrie<span class="accent-dot">.</span></a>
+  <nav class="side-nav" aria-label="Primary" data-nav>
+    <ul>
+      <li><a href="#about"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-about"/></svg>about</a></li>
+      <li><a href="#journey"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-journey"/></svg>journey</a></li>
+      <li><a href="#work"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-work"/></svg>work</a></li>
+      <li><a href="#stack"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-stack"/></svg>stack</a></li>
+      <li><a href="#certifications"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cert"/></svg>certifications</a></li>
+      <li><a href="#contact"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-mail"/></svg>contact</a></li>
+    </ul>
+  </nav>
+  <hr class="side-divider" />
+  <button type="button" class="search-hint" data-open-palette>
+    <span>Search</span>
+    <span class="keys" aria-hidden="true"><kbd class="kbd">Alt</kbd>+<kbd class="kbd">K</kbd></span>
+    <span class="sr-only">(Alt + K)</span>
+  </button>
+  <div class="side-theme">
+    <div class="theme-switch" role="radiogroup" aria-label="Color theme" data-theme-switch>
+      <button type="button" role="radio" data-theme-value="system" aria-label="System theme" title="System"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-system"/></svg></button>
+      <button type="button" role="radio" data-theme-value="light" aria-label="Light theme" title="Light"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-sun"/></svg></button>
+      <button type="button" role="radio" data-theme-value="dark" aria-label="Dark theme" title="Dark"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-moon"/></svg></button>
     </div>
+  </div>
+  <div class="side-foot">
+    <p class="label">Reach me at</p>
+    <a href="mailto:jfree.automation@gmail.com">jfree.automation@gmail.com</a>
+  </div>
+</aside>
 
-    <div class="side-bottom">
-      <div class="icon-row">
-        <a class="icon-link" href="mailto:jfree.automation@gmail.com" title="Email" aria-label="Email">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M22 6l-10 7L2 6"></path></svg>
-        </a>
-        <a class="icon-link" href="https://github.com/jef-ui" title="GitHub" aria-label="GitHub" target="_blank" rel="noopener noreferrer">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55v-1.94c-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.75 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.18-3.09-.12-.29-.51-1.46.11-3.05 0 0 .96-.31 3.15 1.18a10.9 10.9 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.59.23 2.76.11 3.05.74.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.39-5.25 5.67.41.36.78 1.07.78 2.15v3.19c0 .3.2.66.79.55A10.52 10.52 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5z"></path></svg>
-        </a>
-        <a class="icon-link" href="https://www.linkedin.com/in/jefrie-rodriguez-009a65290/" title="LinkedIn" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer">
-          <span class="social-badge">in</span>
-        </a>
-      </div>
-      <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" aria-pressed="false">
-        <svg id="themeIconSun" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg>
-        <svg id="themeIconMoon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+<!-- ===================== MENU OVERLAY (mobile + tablet) ===================== -->
+<dialog class="menu" id="menu" aria-label="Menu">
+  <div class="menu-inner">
+    <div class="menu-head">
+      <a class="logo" href="#about" data-close-menu>jefrie<span class="accent-dot">.</span></a>
+      <button type="button" class="icon-btn" data-close-menu aria-label="Close menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-close"/></svg>
       </button>
     </div>
-  </header>
-
-  <!-- ===================== CONTENT ===================== -->
-  <main class="content" id="top">
-
-    <section class="block" id="about">
-      <h2 class="block-heading"><span class="heading-num">01</span> About</h2>
-      <p class="lede">I'm a Full-Stack Web Developer with a genuine passion for building things. At the core, I'm a problem solver. Technology is just the tool I use to solve it.</p>
-      <p class="body-text">I genuinely enjoy building things. There's a certain satisfaction in taking a slow, manual process and turning it into something that just works. That's what pulls me into this work, not the code itself, but the problem behind it. Whether I'm writing Laravel and Node.js, deploying on Docker and Linux, or wiring together n8n automations, I stay focused on finding the friction, then building something that quietly removes it.</p>
-      <a class="cta-link" href="mailto:jfree.automation@gmail.com">
-        Get in touch
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-      </a>
-    </section>
-
-    <section class="block" id="specialties">
-      <h2 class="block-heading"><span class="heading-num">02</span> Specialties</h2>
-      <div class="chip-toggle" id="stTabs" role="tablist" aria-label="Skills or Tools">
-        <button type="button" role="tab" aria-pressed="true" data-tab="skills">Skills</button>
-        <button type="button" role="tab" aria-pressed="false" data-tab="tools">Tools</button>
+    <nav class="menu-nav" aria-label="Primary" data-nav>
+      <ul>
+        <li><a href="#about" data-close-menu><span>00</span>About</a></li>
+        <li><a href="#journey" data-close-menu><span>01</span>Journey</a></li>
+        <li><a href="#work" data-close-menu><span>02</span>Work</a></li>
+        <li><a href="#stack" data-close-menu><span>03</span>Stack</a></li>
+        <li><a href="#certifications" data-close-menu><span>04</span>Certifications</a></li>
+        <li><a href="#contact" data-close-menu><span>05</span>Contact</a></li>
+      </ul>
+    </nav>
+    <div class="menu-foot">
+      <div class="social-links">
+        <a href="mailto:jfree.automation@gmail.com">email</a>
+        <a href="https://github.com/jef-ui" target="_blank" rel="noopener noreferrer">github</a>
+        <a href="https://www.linkedin.com/in/jefrie-rodriguez-009a65290/" target="_blank" rel="noopener noreferrer">linkedin</a>
+        <a href="https://www.facebook.com/jefrie.rodriguez/" target="_blank" rel="noopener noreferrer">facebook</a>
+        <a href="https://www.tiktok.com/@eirfej_" target="_blank" rel="noopener noreferrer">tiktok</a>
+        <a href="https://www.instagram.com/dev_eirfej/" target="_blank" rel="noopener noreferrer">instagram</a>
       </div>
-      <div class="chip-row" id="stGrid"></div>
+      <div class="theme-switch lg" role="radiogroup" aria-label="Color theme" data-theme-switch>
+        <button type="button" role="radio" data-theme-value="system" aria-label="System theme" title="System"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-system"/></svg></button>
+        <button type="button" role="radio" data-theme-value="light" aria-label="Light theme" title="Light"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-sun"/></svg></button>
+        <button type="button" role="radio" data-theme-value="dark" aria-label="Dark theme" title="Dark"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-moon"/></svg></button>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<!-- ===================== COMMAND PALETTE ===================== -->
+<dialog class="palette" id="palette" aria-label="Jump to section">
+  <div class="palette-field">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-search"/></svg>
+    <input id="paletteInput" type="text" placeholder="Jump to…" autocomplete="off" spellcheck="false"
+      role="combobox" aria-expanded="true" aria-controls="paletteList" aria-autocomplete="list" aria-label="Search sections and actions" />
+    <kbd class="kbd" aria-hidden="true">Esc</kbd>
+  </div>
+  <ul id="paletteList" role="listbox" aria-label="Results"></ul>
+  <p class="palette-empty" id="paletteEmpty" hidden>No matches.</p>
+</dialog>
+
+<!-- ===================== MAIN ===================== -->
+<main class="main" id="main">
+  <div class="container">
+
+    <section class="hero" id="about" aria-labelledby="hero-title">
+      <figure class="hero-photo">
+        <!-- Full-color crop of assets/profile.png with a light halftone screen on top (CSS). -->
+        <picture>
+          <source type="image/webp" srcset="assets/profile-400.webp 400w, assets/profile-640.webp 640w, assets/profile-960.webp 960w" sizes="(min-width: 640px) 280px, 240px" />
+          <img src="assets/profile-640.jpg" width="640" height="800" alt="Photo of Jefrie Rodriguez" fetchpriority="high" decoding="async" />
+        </picture>
+      </figure>
+
+      <div class="hero-text">
+        <p class="eyebrow">Full-Stack Web Developer</p>
+        <h1 id="hero-title">Hi, I'm Jefrie<span class="accent-dot">.</span></h1>
+        <div class="hero-intro">
+          <p>I'm a full-stack developer. I build custom systems from the ground up and see them all the way through — from the first sketch to the server they run on.</p>
+          <p>I handle every layer myself: the database, the backend logic, the interface people click through, and the deployment that keeps it all online. One developer, one system, no loose ends.</p>
+        </div>
+        <a class="cta" href="#journey">
+          <span class="cta-text">Explore my journey</span>
+          <span class="cta-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg></span>
+        </a>
+        <div class="social-links">
+          <a href="https://github.com/jef-ui" target="_blank" rel="noopener noreferrer">github</a>
+          <a href="https://www.linkedin.com/in/jefrie-rodriguez-009a65290/" target="_blank" rel="noopener noreferrer">linkedin</a>
+          <a href="https://www.facebook.com/jefrie.rodriguez/" target="_blank" rel="noopener noreferrer">facebook</a>
+          <a href="https://www.tiktok.com/@eirfej_" target="_blank" rel="noopener noreferrer">tiktok</a>
+          <a href="https://www.instagram.com/dev_eirfej/" target="_blank" rel="noopener noreferrer">instagram</a>
+        </div>
+      </div>
     </section>
 
-    <section class="block" id="work">
-      <h2 class="block-heading"><span class="heading-num">03</span> Projects</h2>
-      <div class="filter-row" id="filterTabs"></div>
-      <div class="work-list" id="projectGrid"></div>
+    <!-- How I work: Software Development Life Cycle -->
+    <section class="sdlc reveal" aria-labelledby="sdlc-title">
+      <p class="eyebrow" id="sdlc-title">From an idea to a working web app</p>
+      <ol class="sdlc-steps">
+        <li style="--i:0"><span class="sdlc-num" aria-hidden="true">01</span><span class="sdlc-label">Planning</span></li>
+        <li style="--i:1"><span class="sdlc-num" aria-hidden="true">02</span><span class="sdlc-label">Analysis</span></li>
+        <li style="--i:2"><span class="sdlc-num" aria-hidden="true">03</span><span class="sdlc-label">Design</span></li>
+        <li style="--i:3"><span class="sdlc-num" aria-hidden="true">04</span><span class="sdlc-label">Development</span></li>
+        <li style="--i:4"><span class="sdlc-num" aria-hidden="true">05</span><span class="sdlc-label">Testing</span></li>
+        <li style="--i:5"><span class="sdlc-num" aria-hidden="true">06</span><span class="sdlc-label">Deployment</span></li>
+        <li style="--i:6"><span class="sdlc-num" aria-hidden="true">07</span><span class="sdlc-label">Maintenance</span></li>
+      </ol>
+    </section>
+
+    <!-- Stats: first two are counted from the data in the script below. -->
+    <dl class="stats reveal">
+      <div class="stat"><dt class="sr-only">GitHub contributions in the last year</dt><dd style="margin:0"><span class="stat-num" data-stat="contributions">—</span><span class="stat-cap" aria-hidden="true">GitHub contributions</span></dd></div>
+      <div class="stat"><dt class="sr-only">Tools in my stack</dt><dd style="margin:0"><span class="stat-num" data-stat="tools">15</span><span class="stat-cap" aria-hidden="true">Tools in my stack</span></dd></div>
+      <!-- TODO: replace with a real number (e.g. years of experience). -->
+      <div class="stat"><dt class="sr-only">Years building</dt><dd style="margin:0"><span class="stat-num todo">TODO</span><span class="stat-cap" aria-hidden="true">Years building</span></dd></div>
+    </dl>
+
+    <!-- Live GitHub contributions (rendered by initGitHub below). Falls back to a plain link. -->
+    <a class="gh reveal" id="github" href="https://github.com/jef-ui" target="_blank" rel="noopener noreferrer" data-state="loading">
+      <div class="gh-head">
+        <strong id="ghTotal">GitHub activity <span class="gh-sub">· last 12 months</span></strong>
+        <span class="gh-go">github.com/jef-ui</span>
+      </div>
+      <div class="gh-scroll" aria-hidden="true">
+        <div class="gh-months" id="ghMonths"></div>
+        <div class="gh-grid" id="ghGrid"></div>
+      </div>
+      <div class="gh-legend" aria-hidden="true">
+        <span>Less</span><i></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i><span>More</span>
+      </div>
+    </a>
+
+    <!-- ===================== 01 — JOURNEY ===================== -->
+    <section class="section" id="journey" aria-labelledby="journey-title">
+      <div class="sec-head reveal">
+        <h2 class="sec-title" id="journey-title"><b>01</b> — journey</h2>
+        <div class="sec-tools">
+          <span class="count" data-count-for="journeyTrack" aria-hidden="true"></span>
+          <div class="arrows" data-arrows-for="journeyTrack">
+            <button type="button" class="icon-btn prev" aria-label="Previous chapter"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+            <button type="button" class="icon-btn next" aria-label="Next chapter"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+          </div>
+        </div>
+      </div>
+      <div class="reveal">
+        <p class="lede">Good systems start<br class="br-wide" /> with the people who use them.</p>
+        <div class="body-text">
+          <p>Before I write any code, I sit with the people doing the work and learn how things really get done — what slows them down, what they repeat every day, what they wish just worked.</p>
+          <p>Then I build around that: systems that fit the way people already work, cut out the repetitive parts, and keep running long after launch day.</p>
+        </div>
+      </div>
+      <!-- Chapters render from the JOURNEY array in the script. -->
+      <ol class="slider reveal" id="journeyTrack" tabindex="0" aria-label="Journey chapters, scroll sideways"></ol>
+    </section>
+
+    <!-- ===================== 02 — WORK ===================== -->
+    <section class="section" id="work" aria-labelledby="work-title">
+      <div class="sec-head reveal">
+        <h2 class="sec-title" id="work-title"><b>02</b> — work</h2>
+        <div class="sec-tools">
+          <span class="count" data-count-for="workTrack" aria-hidden="true"></span>
+          <div class="arrows" data-arrows-for="workTrack">
+            <button type="button" class="icon-btn prev" aria-label="Previous project"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+            <button type="button" class="icon-btn next" aria-label="Next project"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+          </div>
+          <a class="sec-link" href="https://github.com/jef-ui" target="_blank" rel="noopener noreferrer">All&nbsp;→</a>
+        </div>
+      </div>
+      <div class="filters reveal" id="filterTabs" role="group" aria-label="Filter projects by category"></div>
+      <ul class="slider reveal" id="workTrack" tabindex="0" aria-label="Projects, scroll sideways"></ul>
       <p class="work-note">Note: these apps are locally hosted and some are confidential, so I'm building static prototypes and adding screenshots here as they're ready.</p>
     </section>
 
-    <section class="block" id="contact">
-      <h2 class="block-heading"><span class="heading-num">04</span> Contact</h2>
-      <p class="body-text">Have a project in mind, or just want to talk automation? My inbox is open.</p>
-      <a class="cta-link" href="mailto:jfree.automation@gmail.com">
-        Say hello
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-      </a>
+    <!-- ===================== 03 — STACK ===================== -->
+    <section class="section" id="stack" aria-labelledby="stack-title">
+      <span id="specialties" aria-hidden="true"></span>
+      <div class="sec-head reveal">
+        <h2 class="sec-title" id="stack-title"><b>03</b> — stack</h2>
+        <span class="count" data-stat="tools-label"></span>
+      </div>
+      <ul class="skills reveal" id="skillGrid"></ul>
+      <div class="marquee reveal" id="toolMarquee"></div>
+    </section>
 
-      <div class="icon-row" style="margin-top: 28px;">
-        <a class="icon-link" href="tel:+639959753095" title="Phone" aria-label="Phone">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-        </a>
-        <a class="icon-link" href="mailto:jfree.automation@gmail.com" title="Email" aria-label="Email">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M22 6l-10 7L2 6"></path></svg>
-        </a>
-        <a class="icon-link" href="https://github.com/jef-ui" title="GitHub" aria-label="GitHub" target="_blank" rel="noopener noreferrer">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55v-1.94c-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.75 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.18-3.09-.12-.29-.51-1.46.11-3.05 0 0 .96-.31 3.15 1.18a10.9 10.9 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.59.23 2.76.11 3.05.74.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.39-5.25 5.67.41.36.78 1.07.78 2.15v3.19c0 .3.2.66.79.55A10.52 10.52 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5z"></path></svg>
-        </a>
-        <a class="icon-link" href="https://www.linkedin.com/in/jefrie-rodriguez-009a65290/" title="LinkedIn" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer">
-          <span class="social-badge">in</span>
-        </a>
-        <a class="icon-link" href="https://www.facebook.com/jefrie.rodriguez/" title="Facebook" aria-label="Facebook" target="_blank" rel="noopener noreferrer">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.847v1.202h3.919l-.386 1.83-.287 1.837h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z"></path></svg>
-        </a>
-        <a class="icon-link" href="https://www.tiktok.com/@eirfej_" title="TikTok" aria-label="TikTok" target="_blank" rel="noopener noreferrer">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"></path></svg>
-        </a>
-        <a class="icon-link" href="https://www.instagram.com/dev_eirfej/" title="Instagram" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"></path></svg>
-        </a>
+    <!-- ===================== 04 — CERTIFICATIONS ===================== -->
+    <section class="section" id="certifications" aria-labelledby="cert-title">
+      <div class="sec-head reveal">
+        <h2 class="sec-title" id="cert-title"><b>04</b> — certifications</h2>
+      </div>
+      <!-- Cards render from the CERTIFICATIONS array in the script. -->
+      <ul class="certs reveal" id="certGrid"></ul>
+    </section>
+
+    <!-- ===================== CONTACT ===================== -->
+    <section class="section contact" id="contact" aria-labelledby="contact-title">
+      <div class="reveal">
+        <h2 class="big" id="contact-title">Let's talk<span class="accent-dot">.</span></h2>
+        <p class="body-text">Have a project in mind, or just want to talk automation? My inbox is open.</p>
+        <a class="contact-email" href="mailto:jfree.automation@gmail.com">jfree.automation@gmail.com</a>
+        <div>
+          <a class="cta" href="mailto:jfree.automation@gmail.com">
+            <span class="cta-text">Say hello</span>
+            <span class="cta-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-arrow"/></svg></span>
+          </a>
+        </div>
+      </div>
+      <div class="contact-list reveal">
+        <a href="tel:+639959753095"><small>Phone</small><span>+63 995 975 3095</span></a>
+        <a href="https://github.com/jef-ui" target="_blank" rel="noopener noreferrer"><small>GitHub</small><span>jef-ui</span></a>
+        <a href="https://www.linkedin.com/in/jefrie-rodriguez-009a65290/" target="_blank" rel="noopener noreferrer"><small>LinkedIn</small><span>jefrie-rodriguez</span></a>
+        <a href="https://www.facebook.com/jefrie.rodriguez/" target="_blank" rel="noopener noreferrer"><small>Facebook</small><span>jefrie.rodriguez</span></a>
+        <a href="https://www.tiktok.com/@eirfej_" target="_blank" rel="noopener noreferrer"><small>TikTok</small><span>@eirfej_</span></a>
+        <a href="https://www.instagram.com/dev_eirfej/" target="_blank" rel="noopener noreferrer"><small>Instagram</small><span>@dev_eirfej</span></a>
       </div>
     </section>
 
-  </main>
-</div>
+  </div>
+</main>
+
+<footer class="footer">
+  <p>© <span id="year">2026</span> Jefrie Rodriguez</p>
+  <a href="#about">Back to top ↑</a>
+</footer>
+
+<!-- Floating scroll pill: label follows the section in view, bar tracks page progress. -->
+<a class="pill" id="pill" href="#journey">
+  <span class="pill-text"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-arrow"/></svg><span id="pillLabel">Scroll to explore</span></span>
+  <span class="pill-bar" aria-hidden="true"><i id="pillBar"></i></span>
+</a>
 
 <script>
   // ==========================================================================
@@ -523,6 +1003,10 @@
     n8n: "M21.4737 5.6842c-1.1772 0-2.1663.8051-2.4468 1.8947h-2.8955c-1.235 0-2.289.893-2.492 2.111l-.1038.623a1.263 1.263 0 0 1-1.246 1.0555H11.289c-.2805-1.0896-1.2696-1.8947-2.4468-1.8947s-2.1663.8051-2.4467 1.8947H4.973c-.2805-1.0896-1.2696-1.8947-2.4468-1.8947C1.1311 9.4737 0 10.6047 0 12s1.131 2.5263 2.5263 2.5263c1.1772 0 2.1663-.8051 2.4468-1.8947h1.4223c.2804 1.0896 1.2696 1.8947 2.4467 1.8947 1.1772 0 2.1663-.8051 2.4468-1.8947h1.0008a1.263 1.263 0 0 1 1.2459 1.0555l.1038.623c.203 1.218 1.257 2.111 2.492 2.111h.3692c.2804 1.0895 1.2696 1.8947 2.4468 1.8947 1.3952 0 2.5263-1.131 2.5263-2.5263s-1.131-2.5263-2.5263-2.5263c-1.1772 0-2.1664.805-2.4468 1.8947h-.3692a1.263 1.263 0 0 1-1.246-1.0555l-.1037-.623A2.52 2.52 0 0 0 13.9607 12a2.52 2.52 0 0 0 .821-1.4794l.1038-.623a1.263 1.263 0 0 1 1.2459-1.0555h2.8955c.2805 1.0896 1.2696 1.8947 2.4468 1.8947 1.3952 0 2.5263-1.131 2.5263-2.5263s-1.131-2.5263-2.5263-2.5263m0 1.2632a1.263 1.263 0 0 1 1.2631 1.2631 1.263 1.263 0 0 1-1.2631 1.2632 1.263 1.263 0 0 1-1.2632-1.2632 1.263 1.263 0 0 1 1.2632-1.2631M2.5263 10.7368A1.263 1.263 0 0 1 3.7895 12a1.263 1.263 0 0 1-1.2632 1.2632A1.263 1.263 0 0 1 1.2632 12a1.263 1.263 0 0 1 1.2631-1.2632m6.3158 0A1.263 1.263 0 0 1 10.1053 12a1.263 1.263 0 0 1-1.2632 1.2632A1.263 1.263 0 0 1 7.579 12a1.263 1.263 0 0 1 1.2632-1.2632m10.1053 3.7895a1.263 1.263 0 0 1 1.2631 1.2632 1.263 1.263 0 0 1-1.2631 1.2631 1.263 1.263 0 0 1-1.2632-1.2631 1.263 1.263 0 0 1 1.2632-1.2632",
     telegram: "M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z",
     google: "M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z",
+    linux: "M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.132 1.884 1.071.771-.06 1.592-.536 2.257-1.306.631-.765 1.683-1.084 2.378-1.503.348-.199.629-.469.649-.853.023-.4-.2-.811-.714-1.376v-.097l-.003-.003c-.17-.2-.25-.535-.338-.926-.085-.401-.182-.786-.492-1.046h-.003c-.059-.054-.123-.067-.188-.135a.357.357 0 00-.19-.064c.431-1.278.264-2.55-.173-3.694-.533-1.41-1.465-2.638-2.175-3.483-.796-1.005-1.576-1.957-1.56-3.368.026-2.152.236-6.133-3.544-6.139zm.529 3.405h.013c.213 0 .396.062.584.198.19.135.33.332.438.533.105.259.158.459.166.724 0-.02.006-.04.006-.06v.105a.086.086 0 01-.004-.021l-.004-.024a1.807 1.807 0 01-.15.706.953.953 0 01-.213.335.71.71 0 00-.088-.042c-.104-.045-.198-.064-.284-.133a1.312 1.312 0 00-.22-.066c.05-.06.146-.133.183-.198.053-.128.082-.264.088-.402v-.02a1.21 1.21 0 00-.061-.4c-.045-.134-.101-.2-.183-.333-.084-.066-.167-.132-.267-.132h-.016c-.093 0-.176.03-.262.132a.8.8 0 00-.205.334 1.18 1.18 0 00-.09.4v.019c.002.089.008.179.02.267-.193-.067-.438-.135-.607-.202a1.635 1.635 0 01-.018-.2v-.02a1.772 1.772 0 01.15-.768c.082-.22.232-.406.43-.533a.985.985 0 01.594-.2zm-2.962.059h.036c.142 0 .27.048.399.135.146.129.264.288.344.465.09.199.14.4.153.667v.004c.007.134.006.2-.002.266v.08c-.03.007-.056.018-.083.024-.152.055-.274.135-.393.2.012-.09.013-.18.003-.267v-.015c-.012-.133-.04-.2-.082-.333a.613.613 0 00-.166-.267.248.248 0 00-.183-.064h-.021c-.071.006-.13.04-.186.132a.552.552 0 00-.12.27.944.944 0 00-.023.33v.015c.012.135.037.2.08.334.046.134.098.2.166.268.01.009.02.018.034.024-.07.057-.117.07-.176.136a.304.304 0 01-.131.068 2.62 2.62 0 01-.275-.402 1.772 1.772 0 01-.155-.667 1.759 1.759 0 01.08-.668 1.43 1.43 0 01.283-.535c.128-.133.26-.2.418-.2zm1.37 1.706c.332 0 .733.065 1.216.399.293.2.523.269 1.052.468h.003c.255.136.405.266.478.399v-.131a.571.571 0 01.016.47c-.123.31-.516.643-1.063.842v.002c-.268.135-.501.333-.775.465-.276.135-.588.292-1.012.267a1.139 1.139 0 01-.448-.067 3.566 3.566 0 01-.322-.198c-.195-.135-.363-.332-.612-.465v-.005h-.005c-.4-.246-.616-.512-.686-.71-.07-.268-.005-.47.193-.6.224-.135.38-.271.483-.336.104-.074.143-.102.176-.131h.002v-.003c.169-.202.436-.47.839-.601.139-.036.294-.065.466-.065zm2.8 2.142c.358 1.417 1.196 3.475 1.735 4.473.286.534.855 1.659 1.102 3.024.156-.005.33.018.513.064.646-1.671-.546-3.467-1.089-3.966-.22-.2-.232-.335-.123-.335.59.534 1.365 1.572 1.646 2.757.13.535.16 1.104.021 1.67.067.028.135.06.205.067 1.032.534 1.413.938 1.23 1.537v-.043c-.06-.003-.12 0-.18 0h-.016c.151-.467-.182-.825-1.065-1.224-.915-.4-1.646-.336-1.77.465-.008.043-.013.066-.018.135-.068.023-.139.053-.209.064-.43.268-.662.669-.793 1.187-.13.533-.17 1.156-.205 1.869v.003c-.02.334-.17.838-.319 1.35-1.5 1.072-3.58 1.538-5.348.334a2.645 2.645 0 00-.402-.533 1.45 1.45 0 00-.275-.333c.182 0 .338-.03.465-.067a.615.615 0 00.314-.334c.108-.267 0-.697-.345-1.163-.345-.467-.931-.995-1.788-1.521-.63-.4-.986-.87-1.15-1.396-.165-.534-.143-1.085-.015-1.645.245-1.07.873-2.11 1.274-2.763.107-.065.037.135-.408.974-.396.751-1.14 2.497-.122 3.854a8.123 8.123 0 01.647-2.876c.564-1.278 1.743-3.504 1.836-5.268.048.036.217.135.289.202.218.133.38.333.59.465.21.201.477.335.876.335.039.003.075.006.11.006.412 0 .73-.134.997-.268.29-.134.52-.334.74-.4h.005c.467-.135.835-.402 1.044-.7zm2.185 8.958c.037.6.343 1.245.882 1.377.588.134 1.434-.333 1.791-.765l.211-.01c.315-.007.577.01.847.268l.003.003c.208.199.305.53.391.876.085.4.154.78.409 1.066.486.527.645.906.636 1.14l.003-.007v.018l-.003-.012c-.015.262-.185.396-.498.595-.63.401-1.746.712-2.457 1.57-.618.737-1.37 1.14-2.036 1.191-.664.053-1.237-.2-1.574-.898l-.005-.003c-.21-.4-.12-1.025.056-1.69.176-.668.428-1.344.463-1.897.037-.714.076-1.335.195-1.814.12-.465.308-.797.641-.984l.045-.022zm-10.814.049h.01c.053 0 .105.005.157.014.376.055.706.333 1.023.752l.91 1.664.003.003c.243.533.754 1.064 1.189 1.637.434.598.77 1.131.729 1.57v.006c-.057.744-.48 1.148-1.125 1.294-.645.135-1.52.002-2.395-.464-.968-.536-2.118-.469-2.857-.602-.369-.066-.61-.2-.723-.4-.11-.2-.113-.602.123-1.23v-.004l.002-.003c.117-.334.03-.752-.027-1.118-.055-.401-.083-.71.043-.94.16-.334.396-.4.69-.533.294-.135.64-.202.915-.47h.002v-.002c.256-.268.445-.601.668-.838.19-.201.38-.336.663-.336zm7.159-9.074c-.435.201-.945.535-1.488.535-.542 0-.97-.267-1.28-.466-.154-.134-.28-.268-.373-.335-.164-.134-.144-.333-.074-.333.109.016.129.134.199.2.096.066.215.2.36.333.292.2.68.467 1.167.467.485 0 1.053-.267 1.398-.466.195-.135.445-.334.648-.467.156-.136.149-.267.279-.267.128.016.034.134-.147.332a8.097 8.097 0 01-.69.468zm-1.082-1.583V5.64c-.006-.02.013-.042.029-.05.074-.043.18-.027.26.004.063 0 .16.067.15.135-.006.049-.085.066-.135.066-.055 0-.092-.043-.141-.068-.052-.018-.146-.008-.163-.065zm-.551 0c-.02.058-.113.049-.166.066-.047.025-.086.068-.14.068-.05 0-.13-.02-.136-.068-.01-.066.088-.133.15-.133.08-.031.184-.047.259-.005.019.009.036.03.03.05v.02h.003z",
+    ubuntu: "M17.61.455a3.41 3.41 0 0 0-3.41 3.41 3.41 3.41 0 0 0 3.41 3.41 3.41 3.41 0 0 0 3.41-3.41 3.41 3.41 0 0 0-3.41-3.41zM12.92.8C8.923.777 5.137 2.941 3.148 6.451a4.5 4.5 0 0 1 .26-.007 4.92 4.92 0 0 1 2.585.737A8.316 8.316 0 0 1 12.688 3.6 4.944 4.944 0 0 1 13.723.834 11.008 11.008 0 0 0 12.92.8zm9.226 4.994a4.915 4.915 0 0 1-1.918 2.246 8.36 8.36 0 0 1-.273 8.303 4.89 4.89 0 0 1 1.632 2.54 11.156 11.156 0 0 0 .559-13.089zM3.41 7.932A3.41 3.41 0 0 0 0 11.342a3.41 3.41 0 0 0 3.41 3.409 3.41 3.41 0 0 0 3.41-3.41 3.41 3.41 0 0 0-3.41-3.41zm2.027 7.866a4.908 4.908 0 0 1-2.915.358 11.1 11.1 0 0 0 7.991 6.698 11.234 11.234 0 0 0 2.422.249 4.879 4.879 0 0 1-.999-2.85 8.484 8.484 0 0 1-.836-.136 8.304 8.304 0 0 1-5.663-4.32zm11.405.928a3.41 3.41 0 0 0-3.41 3.41 3.41 3.41 0 0 0 3.41 3.41 3.41 3.41 0 0 0 3.41-3.41 3.41 3.41 0 0 0-3.41-3.41z",
+    cloudflare: "M16.5088 16.8447c.1475-.5068.0908-.9707-.1553-1.3154-.2246-.3164-.6045-.499-1.0615-.5205l-8.6592-.1123a.1559.1559 0 0 1-.1333-.0713c-.0283-.042-.0351-.0986-.021-.1553.0278-.084.1123-.1484.2036-.1562l8.7359-.1123c1.0351-.0489 2.1601-.8868 2.5537-1.9136l.499-1.3013c.0215-.0561.0293-.1128.0147-.168-.5625-2.5463-2.835-4.4453-5.5499-4.4453-2.5039 0-4.6284 1.6177-5.3876 3.8614-.4927-.3658-1.1187-.5625-1.794-.499-1.2026.119-2.1665 1.083-2.2861 2.2856-.0283.31-.0069.6128.0635.894C1.5683 13.171 0 14.7754 0 16.752c0 .1748.0142.3515.0352.5273.0141.083.0844.1475.1689.1475h15.9814c.0909 0 .1758-.0645.2032-.1553l.12-.4268zm2.7568-5.5634c-.0771 0-.1611 0-.2383.0112-.0566 0-.1054.0415-.127.0976l-.3378 1.1744c-.1475.5068-.0918.9707.1543 1.3164.2256.3164.6055.498 1.0625.5195l1.8437.1133c.0557 0 .1055.0263.1329.0703.0283.043.0351.1074.0214.1562-.0283.084-.1132.1485-.204.1553l-1.921.1123c-1.041.0488-2.1582.8867-2.5527 1.914l-.1406.3585c-.0283.0713.0215.1416.0986.1416h6.5977c.0771 0 .1474-.0489.169-.126.1122-.4082.1757-.837.1757-1.2803 0-2.6025-2.125-4.727-4.7344-4.727",
+    shield: "M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z",
     ollama: "M16.361 10.26a.894.894 0 0 0-.558.47l-.072.148.001.207c0 .193.004.217.059.353.076.193.152.312.291.448.24.238.51.3.872.205a.86.86 0 0 0 .517-.436.752.752 0 0 0 .08-.498c-.064-.453-.33-.782-.724-.897a1.06 1.06 0 0 0-.466 0zm-9.203.005c-.305.096-.533.32-.65.639a1.187 1.187 0 0 0-.06.52c.057.309.31.59.598.667.362.095.632.033.872-.205.14-.136.215-.255.291-.448.055-.136.059-.16.059-.353l.001-.207-.072-.148a.894.894 0 0 0-.565-.472 1.02 1.02 0 0 0-.474.007Zm4.184 2c-.131.071-.223.25-.195.383.031.143.157.288.353.407.105.063.112.072.117.136.004.038-.01.146-.029.243-.02.094-.036.194-.036.222.002.074.07.195.143.253.064.052.076.054.255.059.164.005.198.001.264-.03.169-.082.212-.234.15-.525-.052-.243-.042-.28.087-.355.137-.08.281-.219.324-.314a.365.365 0 0 0-.175-.48.394.394 0 0 0-.181-.033c-.126 0-.207.03-.355.124l-.085.053-.053-.032c-.219-.13-.259-.145-.391-.143a.396.396 0 0 0-.193.032zm.39-2.195c-.373.036-.475.05-.654.086-.291.06-.68.195-.951.328-.94.46-1.589 1.226-1.787 2.114-.04.176-.045.234-.045.53 0 .294.005.357.043.524.264 1.16 1.332 2.017 2.714 2.173.3.033 1.596.033 1.896 0 1.11-.125 2.064-.727 2.493-1.571.114-.226.169-.372.22-.602.039-.167.044-.23.044-.523 0-.297-.005-.355-.045-.531-.288-1.29-1.539-2.304-3.072-2.497a6.873 6.873 0 0 0-.855-.031zm.645.937a3.283 3.283 0 0 1 1.44.514c.223.148.537.458.671.662.166.251.26.508.303.82.02.143.01.251-.043.482-.08.345-.332.705-.672.957a3.115 3.115 0 0 1-.689.348c-.382.122-.632.144-1.525.138-.582-.006-.686-.01-.853-.042-.57-.107-1.022-.334-1.35-.68-.264-.28-.385-.535-.45-.946-.03-.192.025-.509.137-.776.136-.326.488-.73.836-.963.403-.269.934-.46 1.422-.512.187-.02.586-.02.773-.002zm-5.503-11a1.653 1.653 0 0 0-.683.298C5.617.74 5.173 1.666 4.985 2.819c-.07.436-.119 1.04-.119 1.503 0 .544.064 1.24.155 1.721.02.107.031.202.023.208a8.12 8.12 0 0 1-.187.152 5.324 5.324 0 0 0-.949 1.02 5.49 5.49 0 0 0-.94 2.339 6.625 6.625 0 0 0-.023 1.357c.091.78.325 1.438.727 2.04l.13.195-.037.064c-.269.452-.498 1.105-.605 1.732-.084.496-.095.629-.095 1.294 0 .67.009.803.088 1.266.095.555.288 1.143.503 1.534.071.128.243.393.264.407.007.003-.014.067-.046.141a7.405 7.405 0 0 0-.548 1.873c-.062.417-.071.552-.071.991 0 .56.031.832.148 1.279L3.42 24h1.478l-.05-.091c-.297-.552-.325-1.575-.068-2.597.117-.472.25-.819.498-1.296l.148-.29v-.177c0-.165-.003-.184-.057-.293a.915.915 0 0 0-.194-.25 1.74 1.74 0 0 1-.385-.543c-.424-.92-.506-2.286-.208-3.451.124-.486.329-.918.544-1.154a.787.787 0 0 0 .223-.531c0-.195-.07-.355-.224-.522a3.136 3.136 0 0 1-.817-1.729c-.14-.96.114-2.005.69-2.834.563-.814 1.353-1.336 2.237-1.475.199-.033.57-.028.776.01.226.04.367.028.512-.041.179-.085.268-.19.374-.431.093-.215.165-.333.36-.576.234-.29.46-.489.822-.729.413-.27.884-.467 1.352-.561.17-.035.25-.04.569-.04.319 0 .398.005.569.04a4.07 4.07 0 0 1 1.914.997c.117.109.398.457.488.602.034.057.095.177.132.267.105.241.195.346.374.43.14.068.286.082.503.045.343-.058.607-.053.943.016 1.144.23 2.14 1.173 2.581 2.437.385 1.108.276 2.267-.296 3.153-.097.15-.193.27-.333.419-.301.322-.301.722-.001 1.053.493.539.801 1.866.708 3.036-.062.772-.26 1.463-.533 1.854a2.096 2.096 0 0 1-.224.258.916.916 0 0 0-.194.25c-.054.109-.057.128-.057.293v.178l.148.29c.248.476.38.823.498 1.295.253 1.008.231 2.01-.059 2.581a.845.845 0 0 0-.044.098c0 .006.329.009.732.009h.73l.02-.074.036-.134c.019-.076.057-.3.088-.516.029-.217.029-1.016 0-1.258-.11-.875-.295-1.57-.597-2.226-.032-.074-.053-.138-.046-.141.008-.005.057-.074.108-.152.376-.569.607-1.284.724-2.228.031-.26.031-1.378 0-1.628-.083-.645-.182-1.082-.348-1.525a6.083 6.083 0 0 0-.329-.7l-.038-.064.131-.194c.402-.604.636-1.262.727-2.04a6.625 6.625 0 0 0-.024-1.358 5.512 5.512 0 0 0-.939-2.339 5.325 5.325 0 0 0-.95-1.02 8.097 8.097 0 0 1-.186-.152.692.692 0 0 1 .023-.208c.208-1.087.201-2.443-.017-3.503-.19-.924-.535-1.658-.98-2.082-.354-.338-.716-.482-1.15-.455-.996.059-1.8 1.205-2.116 3.01a6.805 6.805 0 0 0-.097.726c0 .036-.007.066-.015.066a.96.96 0 0 1-.149-.078A4.857 4.857 0 0 0 12 3.03c-.832 0-1.687.243-2.456.698a.958.958 0 0 1-.148.078c-.008 0-.015-.03-.015-.066a6.71 6.71 0 0 0-.097-.725C8.997 1.392 8.337.319 7.46.048a2.096 2.096 0 0 0-.585-.041Zm.293 1.402c.248.197.523.759.682 1.388.03.113.06.244.069.292.007.047.026.152.041.233.067.365.098.76.102 1.24l.002.475-.12.175-.118.178h-.278c-.324 0-.646.041-.954.124l-.238.06c-.033.007-.038-.003-.057-.144a8.438 8.438 0 0 1 .016-2.323c.124-.788.413-1.501.696-1.711.067-.05.079-.049.157.013zm9.825-.012c.17.126.358.46.498.888.28.854.36 2.028.212 3.145-.019.14-.024.151-.057.144l-.238-.06a3.693 3.693 0 0 0-.954-.124h-.278l-.119-.178-.119-.175.002-.474c.004-.669.066-1.19.214-1.772.157-.623.434-1.185.68-1.382.078-.062.09-.063.159-.012z"
   };
 
@@ -541,6 +1025,10 @@
     css:            { name: "CSS",                  icon: "css3",        color: "#1572B6" },
     tailwind:       { name: "Tailwind CSS",         icon: "tailwindcss", color: "#06B6D4" },
     docker:         { name: "Docker",               icon: "docker",      color: "#2496ED" },
+    linux:          { name: "Linux",                icon: "linux" },
+    ubuntu:         { name: "Ubuntu",               icon: "ubuntu",      color: "#E95420" },
+    cloudflare:     { name: "Cloudflare",           icon: "cloudflare",  color: "#F38020" },
+    vpn:            { name: "VPN",                  icon: "shield" },
     n8n:            { name: "n8n",                  icon: "n8n",         color: "#EA4B71" },
     telegram:       { name: "Telegram Bot API",     icon: "telegram",    color: "#26A5E4" },
     googleworkspace:{ name: "Google Workspace",     icon: "google",      color: "#4285F4" },
@@ -562,18 +1050,23 @@
   // ==========================================================================
   // PROJECTS — real work, sourced from the resume. Links are blank until
   // each one is deployed/public; add them here as they become available.
+  // `image` is a base path: the card loads <image>-640.webp / -1024.webp / -1024.jpg.
+  // `short` labels the placeholder thumbnail. Optional `contribution` text
+  // (TODO: your role on each project) replaces the description in the
+  // "My contribution" disclosure.
   // ==========================================================================
   const projects = [
     {
       title: "Google Mail — Incoming Email Automation",
       description: "An n8n workflow that monitors a Gmail inbox every minute, logs every unread email to Google Sheets with a unique auto-generated control number, and saves any attachments to disk. A Groq LLM reads the email body and returns a structured assessment — urgency level, category, a summary, and a recommended forwarding/reply message — which is parsed and pushed instantly to Telegram via the Bot API for quick action.",
       category: "Automation",
-      image: "",
+      image: "assets/work-gmail",
       stack: ["n8n", "googleworkspace", "groq", "telegram"],
       link: ""
     },
     {
       title: "IIMS (Integrated Information Management System)",
+      short: "IIMS",
       description: "A locally-hosted system built for use by regional government agencies with modules for weather monitoring, data tracking, and inventory management. Auto-generates PDF reports, guest logs, radio logs, and personnel records, integrated with Weather and Map APIs.",
       category: "Web",
       image: "",
@@ -584,12 +1077,13 @@
       title: "ASEAN Information Management System",
       description: "A responder check-in database built for the Emergency Operations Center at the ASEAN Event in Coron, Palawan. Auto-generates unique control-number IDs and tracks resource and facility inventory, integrated with a Map API.",
       category: "Web",
-      image: "",
+      image: "assets/work-asean",
       stack: ["php", "laravel", "mysql"],
       link: "https://asean-2026-ims.vercel.app/"
     },
     {
       title: "Bantay MIMAROPA",
+      short: "Bantay MIMAROPA",
       description: "A public-facing, citizen flood-reporting web app (in development) that lets residents submit live-photo flood reports by barangay, with an admin dashboard that consolidates reports for agency monitoring.",
       category: "Web",
       image: "",
@@ -600,12 +1094,13 @@
       title: "Cake Business Shop Management System",
       description: "A dashboard for daily and weekly sales, stock levels, trend charts, and customer records, paired with a POS module for QR-code checkout and auto-generated receipts.",
       category: "Web",
-      image: "",
+      image: "assets/work-cake",
       stack: ["php", "laravel", "mysql", "tailwind"],
       link: "https://cake-shop-management-system-jade.vercel.app/"
     },
     {
       title: "DRCMS (Digital Records & Communication Management System)",
+      short: "DRCMS",
       description: "Auto-logs incoming and outgoing correspondence via Gmail and a locally-hosted n8n instance. Modules for a document repository, activity calendar, auto-routing, email notifications, and predictive analytics forecasting monthly document volume.",
       category: "Automation",
       image: "",
@@ -614,6 +1109,7 @@
     },
     {
       title: "RAG System (Offline AI Assistant)",
+      short: "RAG System",
       description: "A locally-trained AI assistant built on private, unpublished company data using Ollama with the Qwen model, keeping sensitive information fully offline.",
       category: "AI",
       image: "",
@@ -647,63 +1143,197 @@
     return `<span class="tech-badge" style="width:${size}px;height:${size}px;background:${color};color:${fg};font-size:${Math.round(size * 0.42)}px;" title="${meta.name}">${meta.badge}</span>`;
   }
 
-  function renderSkills() {
-    return SKILLS.map(s => `
-      <span class="chip" title="${s.name}">
-        <span class="chip-icon">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${s.icon}</svg>
-        </span>
-        ${s.name}
-      </span>`).join("");
+  // ==========================================================================
+  // JOURNEY — TODO: replace every placeholder with your real chapters
+  // (oldest first). `achievements` is optional.
+  // ==========================================================================
+  const JOURNEY = [
+    { year: "TODO year", title: "TODO: education / first chapter", story: "TODO: 1–2 sentences on what you studied or started doing.", achievements: ["TODO: achievement"], todo: true },
+    { year: "TODO year", title: "TODO: first role", story: "TODO: 1–2 sentences on the role and the problem you solved.", achievements: ["TODO: achievement"], todo: true },
+    { year: "TODO year", title: "TODO: current role", story: "TODO: 1–2 sentences on what you're building now.", achievements: ["TODO: achievement"], todo: true },
+  ];
+
+  // ==========================================================================
+  // CERTIFICATIONS — TODO: replace with real certifications.
+  // ==========================================================================
+  const CERTIFICATIONS = [
+    { name: "TODO: certification name", issuer: "TODO: issuer", year: "TODO year", todo: true },
+    { name: "TODO: certification name", issuer: "TODO: issuer", year: "TODO year", todo: true },
+  ];
+
+  const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  function renderJourney() {
+    document.getElementById("journeyTrack").innerHTML = JOURNEY.map((c, i) => `
+      <li class="card chapter${c.todo ? " is-todo" : ""}">
+        <div class="chapter-top"><span class="num">${String(i + 1).padStart(2, "0")}</span><span>${esc(c.year)}</span></div>
+        <h3>${esc(c.title)}</h3>
+        <p>${esc(c.story)}</p>
+        ${c.achievements && c.achievements.length ? `<ul>${c.achievements.map(a => `<li>${esc(a)}</li>`).join("")}</ul>` : ""}
+      </li>`).join("");
   }
 
-  function renderTools() {
-    return TOOLS.map(t => `
-      <span class="chip" title="${t.name}">
-        ${renderIcon(t.key, { size: 22 })}
-        ${t.name}
-      </span>`).join("");
+  function renderSkills() {
+    document.getElementById("skillGrid").innerHTML = SKILLS.map(s => `
+      <li class="card skill">
+        <span class="skill-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${s.icon}</svg></span>
+        <h3>${s.name}</h3>
+      </li>`).join("");
   }
+
+  // Two rows moving in opposite directions; each row is duplicated once so the
+  // loop is seamless. The copy is aria-hidden so screen readers hear it once.
+  function renderToolMarquee() {
+    const half = Math.ceil(TOOLS.length / 2);
+    const rows = [TOOLS.slice(0, half), TOOLS.slice(half)];
+    const list = (items, hidden) => `<ul${hidden ? ' aria-hidden="true"' : ""}>${items.map(t =>
+      `<li class="tool">${renderIcon(t.key, { size: 18 })}${t.name}</li>`).join("")}</ul>`;
+    document.getElementById("toolMarquee").innerHTML = rows.map((r, i) =>
+      `<div class="marquee-row${i ? " rev" : ""}">${list(r, false)}${list(r, true)}</div>`).join("");
+  }
+
+  function renderCerts() {
+    document.getElementById("certGrid").innerHTML = CERTIFICATIONS.map(c => `
+      <li class="card cert${c.todo ? " is-todo" : ""}">
+        <span class="skill-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cert"/></svg></span>
+        <div><h3>${esc(c.name)}</h3><p>${esc(c.issuer)} · ${esc(c.year)}</p></div>
+      </li>`).join("");
+  }
+
+  // First sentence of a description, used as the card's one-liner.
+  const firstSentence = (s) => (s.match(/^.+?[.!?](\s|$)/) || [s])[0].trim();
 
   function renderProjects(filter) {
     const list = filter === "All" ? projects : projects.filter(p => p.category === filter);
-    const grid = document.getElementById("projectGrid");
-    grid.innerHTML = list.map((p, i) => {
+    const track = document.getElementById("workTrack");
+    track.innerHTML = list.map((p) => {
+      const n = projects.indexOf(p) + 1;
       const stack = p.stack.map(k => renderIcon(k, { size: 18 })).join("");
-      const link = p.link
-        ? `<a class="work-link" href="${p.link}" target="_blank" rel="noopener noreferrer">Prototype Preview &rarr;</a>`
-        : "";
       const thumb = p.image
-        ? `<div class="work-thumb"><img src="${p.image}" alt="${p.title} preview" loading="lazy"></div>`
+        ? `<div class="wthumb"><picture>
+             <source type="image/webp" srcset="${p.image}-640.webp 640w, ${p.image}-1024.webp 1024w" sizes="(min-width: 1024px) 380px, (min-width: 640px) 48vw, 86vw" />
+             <img src="${p.image}-1024.jpg" width="1024" height="640" alt="Screenshot of ${esc(p.title)}" loading="lazy" decoding="async" />
+           </picture></div>`
+        : `<div class="wthumb empty" aria-hidden="true"><strong>${esc(p.short || p.title)}</strong><span>[ screenshot coming soon ]</span></div>`;
+      const link = p.link
+        ? `<a class="wlink" href="${p.link}" target="_blank" rel="noopener noreferrer">Prototype preview</a>`
         : "";
       return `
-        <div class="work-item${p.image ? "" : " no-thumb"}">
-          <div class="work-num">${String(i + 1).padStart(2, "0")}</div>
+        <li class="card wcard">
           ${thumb}
-          <div>
-            <div class="work-title-row">
-              <h3 class="work-title">${p.title}</h3>
-              <span class="work-cat">${p.category}</span>
+          <div class="wbody">
+            <p class="wcat"><b>${String(n).padStart(2, "0")}</b> · ${p.category}</p>
+            <h3>${esc(p.title)}</h3>
+            <p class="wline">${esc(firstSentence(p.description))}</p>
+            <div class="wstack">${stack}</div>
+            <div class="wactions">
+              <button type="button" class="disclose" aria-expanded="false" aria-controls="wd-${n}">My contribution <span class="plus" aria-hidden="true">+</span></button>
+              ${link}
             </div>
-            <p class="work-desc">${p.description}</p>
-            <div class="work-stack">${stack}</div>
-            ${link}
+            <p class="wdetail" id="wd-${n}" hidden>${esc(p.contribution || p.description)}</p>
           </div>
-        </div>`;
+        </li>`;
     }).join("");
+    track.scrollLeft = 0;
+    track.dispatchEvent(new Event("scroll"));
   }
 
   // ==========================================================================
-  // NAV — scroll-based active-link highlighting.
+  // SLIDERS — arrow buttons + "01 / 07" counter for every .slider track
   // ==========================================================================
+  function initSlider(track) {
+    const arrows = document.querySelector(`[data-arrows-for="${track.id}"]`);
+    const count = document.querySelector(`[data-count-for="${track.id}"]`);
+    const prev = arrows && arrows.querySelector(".prev");
+    const next = arrows && arrows.querySelector(".next");
+    const step = () => {
+      const card = track.firstElementChild;
+      return card ? card.getBoundingClientRect().width + 16 : track.clientWidth;
+    };
+    const update = () => {
+      const max = track.scrollWidth - track.clientWidth - 2;
+      if (prev) prev.disabled = track.scrollLeft <= 2;
+      if (next) next.disabled = track.scrollLeft >= max;
+      const total = track.children.length;
+      const idx = Math.min(total, Math.round(track.scrollLeft / step()) + 1);
+      if (count) count.textContent = total ? `${String(idx).padStart(2, "0")} / ${String(total).padStart(2, "0")}` : "";
+    };
+    if (prev) prev.addEventListener("click", () => track.scrollBy({ left: -step(), behavior: prefersReducedMotion ? "auto" : "smooth" }));
+    if (next) next.addEventListener("click", () => track.scrollBy({ left: step(), behavior: prefersReducedMotion ? "auto" : "smooth" }));
+    track.addEventListener("scroll", () => requestAnimationFrame(update), { passive: true });
+    track.addEventListener("keydown", (e) => {
+      if (e.target !== track) return;
+      if (e.key === "ArrowRight") { e.preventDefault(); next && next.click(); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); prev && prev.click(); }
+    });
+    window.addEventListener("resize", update);
+    update();
+  }
+
+  // "My contribution +" disclosures (event delegation survives re-renders).
+  function initDisclosures() {
+    document.getElementById("workTrack").addEventListener("click", (e) => {
+      const btn = e.target.closest(".disclose");
+      if (!btn) return;
+      const open = btn.getAttribute("aria-expanded") !== "true";
+      btn.setAttribute("aria-expanded", String(open));
+      document.getElementById(btn.getAttribute("aria-controls")).hidden = !open;
+    });
+  }
+
+  // ==========================================================================
+  // SCROLL PILL — progress bar + current section label; hides at the footer
+  // ==========================================================================
+  function initPill() {
+    const pill = document.getElementById("pill");
+    const bar = document.getElementById("pillBar");
+    const label = document.getElementById("pillLabel");
+    const footer = document.querySelector(".footer");
+    const sections = [...document.querySelectorAll("main section[id]")];
+    let ticking = false;
+
+    const update = () => {
+      ticking = false;
+      const max = document.documentElement.scrollHeight - innerHeight;
+      bar.style.transform = `scaleX(${max > 0 ? Math.min(1, scrollY / max) : 0})`;
+      // Current = last section whose top has passed 40% of the viewport.
+      let current = null;
+      sections.forEach(s => { if (s.getBoundingClientRect().top < innerHeight * 0.4) current = s; });
+      const i = current ? sections.indexOf(current) : -1;
+      const nextSec = sections[i + 1];
+      if (!current || current.id === "about") {
+        label.textContent = "Scroll to explore";
+      } else {
+        const h = current.querySelector("h2");
+        label.textContent = h ? h.textContent.replace(/\s+/g, " ").trim().replace(/\.$/, "").toLowerCase() : current.id;
+      }
+      pill.setAttribute("href", nextSec ? `#${nextSec.id}` : "#contact");
+      pill.setAttribute("aria-label", `${label.textContent}. Jump to ${nextSec ? nextSec.id : "contact"}`);
+    };
+    addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    addEventListener("resize", update);
+    new IntersectionObserver(([entry]) => pill.classList.toggle("is-hidden", entry.isIntersecting))
+      .observe(footer);
+    update();
+  }
+
+  // ==========================================================================
+  // NAV — scroll-based active-link highlighting (sidebar + menu overlay).
+  // ==========================================================================
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
   function initNav() {
-    const navAnchors = document.querySelectorAll("#sideNav a");
-    const sections = [...navAnchors]
-      .map(a => document.querySelector(a.getAttribute("href")))
-      .filter(Boolean);
+    const navAnchors = document.querySelectorAll("[data-nav] a");
+    const ids = [...new Set([...navAnchors].map(a => a.getAttribute("href").slice(1)))];
+    const sections = ids.map(id => document.getElementById(id)).filter(Boolean);
 
     const setActive = (id) => {
-      navAnchors.forEach(a => a.classList.toggle("active", a.getAttribute("href") === `#${id}`));
+      navAnchors.forEach(a => {
+        const on = a.getAttribute("href") === `#${id}`;
+        a.classList.toggle("active", on);
+        if (on) a.setAttribute("aria-current", "location");
+        else a.removeAttribute("aria-current");
+      });
     };
 
     const observer = new IntersectionObserver(
@@ -718,97 +1348,308 @@
   }
 
   // ==========================================================================
-  // DARK MODE TOGGLE — persists choice in localStorage; the initial class is
-  // already set by the inline bootstrap script in <head> to avoid a flash.
+  // THEME — system / light / dark. The bootstrap script in <head> already set
+  // data-theme before first paint; this wires up every [data-theme-switch].
   // ==========================================================================
-  function initThemeToggle() {
-    const btn = document.getElementById("themeToggle");
-    const sun = document.getElementById("themeIconSun");
-    const moon = document.getElementById("themeIconMoon");
+  const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
-    const sync = () => {
-      const isDark = document.documentElement.classList.contains("dark");
-      sun.style.display = isDark ? "none" : "block";
-      moon.style.display = isDark ? "block" : "none";
-      btn.setAttribute("aria-pressed", String(isDark));
-    };
+  function readThemePref() {
+    const pref = document.documentElement.getAttribute("data-theme-pref");
+    return pref === "light" || pref === "dark" ? pref : "system";
+  }
 
-    sync();
+  function applyTheme(pref, animate) {
+    const root = document.documentElement;
+    const dark = pref === "dark" || (pref === "system" && darkQuery.matches);
+    if (animate && !prefersReducedMotion) {
+      root.classList.add("theme-anim");
+      clearTimeout(applyTheme.t);
+      applyTheme.t = setTimeout(() => root.classList.remove("theme-anim"), 400);
+    }
+    root.setAttribute("data-theme", dark ? "dark" : "light");
+    root.setAttribute("data-theme-pref", pref);
+    document.querySelectorAll("[data-theme-switch] button").forEach(b => {
+      b.setAttribute("aria-checked", String(b.dataset.themeValue === pref));
+      b.tabIndex = b.dataset.themeValue === pref ? 0 : -1;
+    });
+  }
 
-    btn.addEventListener("click", () => {
-      const isDark = document.documentElement.classList.toggle("dark");
-      localStorage.setItem("theme", isDark ? "dark" : "light");
-      sync();
+  function setThemePref(pref) {
+    try { localStorage.setItem("theme", pref); } catch (e) {}
+    applyTheme(pref, true);
+  }
+
+  function initTheme() {
+    applyTheme(readThemePref(), false);
+    darkQuery.addEventListener("change", () => {
+      if (readThemePref() === "system") applyTheme("system", true);
+    });
+    document.querySelectorAll("[data-theme-switch]").forEach(group => {
+      const buttons = [...group.querySelectorAll("button")];
+      buttons.forEach((b, i) => {
+        b.addEventListener("click", () => setThemePref(b.dataset.themeValue));
+        // Radio-group arrow-key behavior.
+        b.addEventListener("keydown", (e) => {
+          const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+          if (!step) return;
+          e.preventDefault();
+          const next = buttons[(i + step + buttons.length) % buttons.length];
+          setThemePref(next.dataset.themeValue);
+          next.focus();
+        });
+      });
     });
   }
 
   // ==========================================================================
-  // CLICK RIPPLE — subtle press feedback on every button/link, no layout change.
+  // DIALOG HELPERS — native <dialog>.showModal() makes the rest of the page
+  // inert (focus stays inside) and closes on Esc; we add body scroll lock.
   // ==========================================================================
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  function pickRippleColor(el) {
-    const bg = getComputedStyle(el).backgroundColor;
-    const nums = bg.match(/[\d.]+/g);
-    if (!nums || (Number(nums[0]) === 0 && Number(nums[1]) === 0 && Number(nums[2]) === 0 && nums[3] === "0")) {
-      return "rgba(184,85,31,0.18)";
-    }
-    const [r, g, b] = nums.map(Number);
-    const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
-    return luminance < 128 ? "rgba(255,255,255,0.35)" : "rgba(28,27,23,0.15)";
+  function openDialog(dlg) {
+    if (dlg.open) return;
+    dlg.showModal();
+    document.documentElement.classList.add("scroll-lock");
+  }
+  function watchDialogClose(dlg, onClose) {
+    dlg.addEventListener("close", () => {
+      if (!document.querySelector("dialog[open]")) document.documentElement.classList.remove("scroll-lock");
+      if (onClose) onClose();
+    });
   }
 
-  document.addEventListener("click", (e) => {
-    if (prefersReducedMotion) return;
-    const el = e.target.closest(".cta-link, .chip-toggle button, .filter-chip, .theme-toggle, .icon-link, .work-link");
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
-    const x = (e.clientX || rect.left + rect.width / 2) - rect.left - size / 2;
-    const y = (e.clientY || rect.top + rect.height / 2) - rect.top - size / 2;
-    const ripple = document.createElement("span");
-    ripple.className = "ripple";
-    ripple.style.width = ripple.style.height = size + "px";
-    ripple.style.left = x + "px";
-    ripple.style.top = y + "px";
-    ripple.style.background = pickRippleColor(el);
-    el.appendChild(ripple);
-    ripple.addEventListener("animationend", () => ripple.remove());
-  });
+  // Close a dialog, then scroll to the hash target once scroll lock is gone.
+  function closeAndGo(dlg, hash) {
+    dlg.close();
+    const target = hash && document.querySelector(hash);
+    if (!target) return;
+    history.pushState(null, "", hash);
+    target.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "start" });
+    if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+    target.focus({ preventScroll: true });
+  }
+
+  // ==========================================================================
+  // MENU OVERLAY (mobile + tablet)
+  // ==========================================================================
+  function initMenu() {
+    const menu = document.getElementById("menu");
+    const openBtn = document.getElementById("menuOpen");
+    openBtn.addEventListener("click", () => {
+      openDialog(menu);
+      openBtn.setAttribute("aria-expanded", "true");
+    });
+    watchDialogClose(menu, () => openBtn.setAttribute("aria-expanded", "false"));
+    menu.querySelectorAll("[data-close-menu]").forEach(el => {
+      el.addEventListener("click", (e) => {
+        const hash = el.getAttribute("href");
+        e.preventDefault();
+        closeAndGo(menu, hash);
+      });
+    });
+    // If the viewport grows past the sidebar breakpoint, the overlay is no longer needed.
+    window.matchMedia("(min-width: 1024px)").addEventListener("change", (e) => {
+      if (e.matches && menu.open) menu.close();
+    });
+  }
+
+  // ==========================================================================
+  // COMMAND PALETTE — Alt + K, or any [data-open-palette] button
+  // ==========================================================================
+  function initPalette() {
+    const dlg = document.getElementById("palette");
+    const input = document.getElementById("paletteInput");
+    const list = document.getElementById("paletteList");
+    const empty = document.getElementById("paletteEmpty");
+
+    const sectionItems = [...document.querySelectorAll(".side-nav a")].map(a => ({
+      label: a.textContent.trim().replace(/^./, c => c.toUpperCase()),
+      hint: "section",
+      run: () => closeAndGo(dlg, a.getAttribute("href")),
+    }));
+    const actions = [
+      ...sectionItems,
+      { label: "Email me", hint: "action", run: () => { dlg.close(); location.href = "mailto:jfree.automation@gmail.com"; } },
+      { label: "Theme: System", hint: "theme", run: () => { setThemePref("system"); dlg.close(); } },
+      { label: "Theme: Light", hint: "theme", run: () => { setThemePref("light"); dlg.close(); } },
+      { label: "Theme: Dark", hint: "theme", run: () => { setThemePref("dark"); dlg.close(); } },
+    ];
+
+    let shown = actions;
+    let index = 0;
+
+    const render = () => {
+      const q = input.value.trim().toLowerCase();
+      shown = actions.filter(a => a.label.toLowerCase().includes(q));
+      index = Math.min(index, Math.max(shown.length - 1, 0));
+      list.innerHTML = shown.map((a, i) =>
+        `<li role="option" id="pal-${i}" aria-selected="${i === index}" data-i="${i}"><span>${a.label}</span><small>${a.hint}</small></li>`
+      ).join("");
+      empty.hidden = shown.length > 0;
+      if (shown.length) {
+        input.setAttribute("aria-activedescendant", `pal-${index}`);
+        list.children[index].scrollIntoView({ block: "nearest" });
+      } else {
+        input.removeAttribute("aria-activedescendant");
+      }
+    };
+
+    const open = () => {
+      document.getElementById("menu").open && document.getElementById("menu").close();
+      input.value = "";
+      index = 0;
+      render();
+      openDialog(dlg);
+      input.focus();
+    };
+
+    watchDialogClose(dlg);
+    document.querySelectorAll("[data-open-palette]").forEach(b => b.addEventListener("click", open));
+
+    document.addEventListener("keydown", (e) => {
+      if (e.altKey && !e.ctrlKey && !e.metaKey && e.code === "KeyK") {
+        e.preventDefault();
+        dlg.open ? dlg.close() : open();
+      }
+    });
+
+    input.addEventListener("input", () => { index = 0; render(); });
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        if (!shown.length) return;
+        index = (index + (e.key === "ArrowDown" ? 1 : -1) + shown.length) % shown.length;
+        render();
+      } else if (e.key === "Enter" && shown[index]) {
+        e.preventDefault();
+        shown[index].run();
+      }
+    });
+    list.addEventListener("click", (e) => {
+      const li = e.target.closest("li[data-i]");
+      if (li) shown[Number(li.dataset.i)].run();
+    });
+    // Click on the backdrop closes.
+    dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+  }
+
+  // ==========================================================================
+  // GITHUB CONTRIBUTIONS — public contribution calendar for jef-ui, fetched
+  // live from github-contributions-api.jogruber.de (reads the public profile).
+  // ==========================================================================
+  const GITHUB_USER = "jef-ui";
+
+  async function initGitHub() {
+    const card = document.getElementById("github");
+    const grid = document.getElementById("ghGrid");
+    const months = document.getElementById("ghMonths");
+    const total = document.getElementById("ghTotal");
+    if (!card) return;
+    try {
+      // Give up after 8s so a slow API never leaves an empty card.
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 8000);
+      const res = await fetch(`https://github-contributions-api.jogruber.de/v4/${GITHUB_USER}?y=last`, { signal: ctrl.signal });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error(res.status);
+      const data = await res.json();
+      const days = data.contributions;
+      const count = data.total.lastYear;
+      const stat = document.querySelector('[data-stat="contributions"]');
+      if (stat) stat.textContent = count.toLocaleString();
+      card.setAttribute("aria-label", `${count} GitHub contributions in the last year — open github.com/${GITHUB_USER}`);
+
+      // Pad the first week so rows line up Sunday → Saturday, like GitHub.
+      const lead = new Date(days[0].date + "T00:00:00").getDay();
+      const cells = Array(lead).fill('<i class="pad"></i>');
+      days.forEach(d => cells.push(`<i data-l="${d.level}" title="${d.count} on ${d.date}"></i>`));
+      grid.innerHTML = cells.join("");
+
+      // Month labels: one per column where a new month starts.
+      const weeks = Math.ceil(cells.length / 7);
+      const labels = Array(weeks).fill("");
+      let last = -1;
+      days.forEach((d, i) => {
+        const dt = new Date(d.date + "T00:00:00");
+        const col = Math.floor((i + lead) / 7);
+        if (dt.getMonth() !== last && dt.getDate() <= 7 && col < weeks - 1) {
+          labels[col] = dt.toLocaleString("en", { month: "short" });
+          last = dt.getMonth();
+        }
+      });
+      months.innerHTML = labels.map(l => `<span>${l}</span>`).join("");
+
+      card.dataset.state = "ready";
+      const scroller = card.querySelector(".gh-scroll");
+      scroller.scrollLeft = scroller.scrollWidth; // newest weeks first on small screens
+    } catch (e) {
+      card.dataset.state = "error";
+      total.textContent = "See my activity on GitHub";
+    }
+  }
+
+  // ==========================================================================
+  // SCROLL REVEAL — fade/slide-up as blocks enter the viewport
+  // ==========================================================================
+  function initReveal() {
+    const els = document.querySelectorAll(".reveal");
+    if (prefersReducedMotion || !("IntersectionObserver" in window)) {
+      els.forEach(el => el.classList.add("visible"));
+      return;
+    }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    els.forEach(el => io.observe(el));
+  }
 
   // ==========================================================================
   // INIT
   // ==========================================================================
   document.addEventListener("DOMContentLoaded", () => {
+    initTheme();
     initNav();
-    initThemeToggle();
+    initMenu();
+    initPalette();
+    initReveal();
+    initGitHub();
 
-    const stGrid = document.getElementById("stGrid");
-    stGrid.innerHTML = renderSkills();
+    // Stats counted from the data above so they never drift.
+    const statTools = document.querySelector('[data-stat="tools"]');
+    if (statTools) statTools.textContent = TOOLS.length;
 
-    document.querySelectorAll("#stTabs button").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll("#stTabs button").forEach(b => b.setAttribute("aria-pressed", "false"));
-        btn.setAttribute("aria-pressed", "true");
-        stGrid.innerHTML = btn.dataset.tab === "skills" ? renderSkills() : renderTools();
-      });
-    });
+    const statToolsLabel = document.querySelector('[data-stat="tools-label"]');
+    if (statToolsLabel) statToolsLabel.textContent = `${TOOLS.length} tools`;
+    const yearEl = document.getElementById("year");
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+    renderJourney();
+    renderSkills();
+    renderToolMarquee();
+    renderCerts();
 
     const categories = ["All", ...new Set(projects.map(p => p.category))];
     const filterTabs = document.getElementById("filterTabs");
     filterTabs.innerHTML = categories.map((c, i) =>
-      `<button type="button" class="filter-chip" aria-pressed="${i === 0}" data-cat="${c}">${c}</button>`
+      `<button type="button" class="chip-btn" aria-pressed="${i === 0}" data-cat="${c}">${c}</button>`
     ).join("");
 
-    filterTabs.querySelectorAll(".filter-chip").forEach(btn => {
+    filterTabs.querySelectorAll(".chip-btn").forEach(btn => {
       btn.addEventListener("click", () => {
-        filterTabs.querySelectorAll(".filter-chip").forEach(b => b.setAttribute("aria-pressed", "false"));
+        filterTabs.querySelectorAll(".chip-btn").forEach(b => b.setAttribute("aria-pressed", "false"));
         btn.setAttribute("aria-pressed", "true");
         renderProjects(btn.dataset.cat);
       });
     });
 
     renderProjects("All");
+    initDisclosures();
+    document.querySelectorAll(".slider").forEach(initSlider);
+    initPill();
   });
 </script>
 </body>
