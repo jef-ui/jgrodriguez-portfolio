@@ -165,6 +165,9 @@
   .topbar-actions { display: flex; gap: 8px; }
   .topbar .icon-btn { border-color: transparent; background: transparent; }
   .topbar .icon-btn:hover { border-color: var(--line); }
+  .theme-quick .tq-sun { display: none; }
+  :root[data-theme="dark"] .theme-quick .tq-sun { display: block; }
+  :root[data-theme="dark"] .theme-quick .tq-moon { display: none; }
 
   /* ==========================================================================
      SIDEBAR (>= 1024px)
@@ -539,6 +542,7 @@
   .chapter-top { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; color: var(--sub); }
   .chapter-top .num { color: var(--accent-ink); }
   .chapter h3 { margin: 4px 0 0; font-size: 1.35rem; font-weight: 500; letter-spacing: -0.02em; line-height: 1.2; }
+  .chapter .school { margin-top: -4px; font-family: var(--mono); font-size: 12px; color: var(--accent-ink); line-height: 1.5; }
   .chapter p { margin: 0; color: var(--sub); }
   .chapter ul { display: grid; gap: 6px; margin-top: 6px; padding-top: 12px; border-top: 1px dashed var(--line); }
   .chapter li { font-family: var(--mono); font-size: 12px; color: var(--sub); padding-left: 16px; position: relative; }
@@ -730,6 +734,11 @@
 <header class="topbar">
   <a class="logo" href="#about">jefrie<span class="accent-dot">.</span></a>
   <div class="topbar-actions">
+    <!-- Quick light/dark switch (the menu keeps the full system/light/dark choice). -->
+    <button type="button" class="icon-btn theme-quick" id="themeQuick" aria-label="Switch to dark theme">
+      <svg class="tq-moon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-moon"/></svg>
+      <svg class="tq-sun" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-sun"/></svg>
+    </button>
     <button type="button" class="icon-btn" data-open-palette aria-label="Search sections">
       <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-search"/></svg>
     </button>
@@ -1161,11 +1170,11 @@
   // (oldest first). `achievements` is optional.
   // ==========================================================================
   const JOURNEY = [
-    { title: "Computer Engineering Technology", story: "My undergraduate degree, and where my path into tech began.", achievements: ["TODO: school name"] },
+    { title: "Computer Engineering Technology", school: "Batangas State University, The National Engineering University", story: "My undergraduate degree, and where my path into tech began.", achievements: [] },
     { year: "Since 2015", title: "IT Focal, Office of Civil Defense MIMAROPA", story: "I look after the regional office's IT and build the systems it runs on.", achievements: [] },
     // 2018 is counted back from "8 years building" (as of 2026).
     { year: "2018", title: "Started building my own projects", story: "I began developing small projects, which grew into the custom systems I build today.", achievements: [] },
-    { year: "Ongoing", title: "Master in Information Technology", story: "Currently pursuing my master's degree in IT.", achievements: ["TODO: school name"] },
+    { year: "Ongoing", title: "Master in Information Technology", school: "Philippine Christian University", story: "Currently pursuing my master's degree in IT.", achievements: [] },
   ];
 
   // ==========================================================================
@@ -1183,6 +1192,7 @@
       <li class="card chapter${c.todo ? " is-todo" : ""}">
         <div class="chapter-top"><span class="num">${String(i + 1).padStart(2, "0")}</span>${c.year ? `<span>${esc(c.year)}</span>` : ""}</div>
         <h3>${esc(c.title)}</h3>
+        ${c.school ? `<p class="school">${esc(c.school)}</p>` : ""}
         <p>${esc(c.story)}</p>
         ${c.achievements && c.achievements.length ? `<ul>${c.achievements.map(a => `<li>${esc(a)}</li>`).join("")}</ul>` : ""}
       </li>`).join("");
@@ -1388,6 +1398,8 @@
     const dark = pref === "dark" || (pref === "system" && darkQuery.matches);
     root.setAttribute("data-theme", dark ? "dark" : "light");
     root.setAttribute("data-theme-pref", pref);
+    const quick = document.getElementById("themeQuick");
+    if (quick) quick.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
     document.querySelectorAll("[data-theme-switch] button").forEach(b => {
       b.setAttribute("aria-checked", String(b.dataset.themeValue === pref));
       b.tabIndex = b.dataset.themeValue === pref ? 0 : -1;
@@ -1436,6 +1448,11 @@
 
   function initTheme() {
     applyTheme(readThemePref());
+    const quick = document.getElementById("themeQuick");
+    quick.addEventListener("click", () => {
+      const dark = document.documentElement.getAttribute("data-theme") === "dark";
+      setThemePref(dark ? "light" : "dark", centerOf(quick));
+    });
     darkQuery.addEventListener("change", () => {
       if (readThemePref() === "system") switchTheme("system");
     });
