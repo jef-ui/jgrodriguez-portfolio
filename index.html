@@ -754,7 +754,7 @@
     <ul>
       <li><a href="#about"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-about"/></svg>about</a></li>
       <li><a href="#journey"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-journey"/></svg>journey</a></li>
-      <li><a href="#work"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-work"/></svg>work</a></li>
+      <li><a href="#work"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-work"/></svg>real-world work</a></li>
       <li><a href="#stack"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-stack"/></svg>stack</a></li>
       <li><a href="#certifications"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cert"/></svg>certifications</a></li>
       <li><a href="#contact"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-mail"/></svg>contact</a></li>
@@ -792,7 +792,7 @@
       <ul>
         <li><a href="#about" data-close-menu><span>00</span>About</a></li>
         <li><a href="#journey" data-close-menu><span>01</span>Journey</a></li>
-        <li><a href="#work" data-close-menu><span>02</span>Work</a></li>
+        <li><a href="#work" data-close-menu><span>02</span>Real-world work</a></li>
         <li><a href="#stack" data-close-menu><span>03</span>Stack</a></li>
         <li><a href="#certifications" data-close-menu><span>04</span>Certifications</a></li>
         <li><a href="#contact" data-close-menu><span>05</span>Contact</a></li>
@@ -930,10 +930,10 @@
       <ol class="slider reveal" id="journeyTrack" tabindex="0" aria-label="Journey chapters, scroll sideways"></ol>
     </section>
 
-    <!-- ===================== 02 — WORK ===================== -->
+    <!-- ===================== 02 — REAL-WORLD WORK ===================== -->
     <section class="section" id="work" aria-labelledby="work-title">
       <div class="sec-head reveal">
-        <h2 class="sec-title" id="work-title"><b>02</b> — work</h2>
+        <h2 class="sec-title" id="work-title"><b>02</b> — real-world work</h2>
         <div class="sec-tools">
           <span class="count" data-count-for="workTrack" aria-hidden="true"></span>
           <div class="arrows" data-arrows-for="workTrack">
@@ -1100,8 +1100,9 @@
       link: ""
     },
     {
-      title: "ASEAN Information Management System",
-      description: "A responder check-in database built for the Emergency Operations Center at the ASEAN Event in Coron, Palawan. Auto-generates unique control-number IDs and tracks resource and facility inventory, integrated with a Map API.",
+      title: "EOC Information Management System",
+      description: "An information management system built for the Emergency Operations Center during the 44th ASEAN Capital Markets Forum Deputies Meeting and Related Events in Coron, Palawan.",
+      contribution: "Original developer; the system started here. During the event, the Emergency Operations Center used it to manage the inventory of resources, IMT personnel, and STG EPR members, each with an auto-generated unique ID and control number. It also tracked the status of ongoing events through an activity log and mapped facilities with a Map API for better situational awareness. This deployment led to my invitation as designated programmer for NCR, where I'm enhancing it into AREOC-IMCS.",
       category: "Web",
       image: "assets/work-asean",
       stack: ["php", "laravel", "mysql"],
@@ -1166,8 +1167,8 @@
     {
       title: "AREOC-IMCS (ASEAN Regional EOC Integrated Monitoring and Coordination System)",
       short: "AREOC-IMCS",
-      description: "A Laravel coordination system for the ASEAN Regional Emergency Operations Center, built from the EOC's Excel monitoring template (in development).",
-      contribution: "Sole developer. Adds an ICS facilities map, incident monitoring, road passability tracking, live IMT-to-EOC request notifications, and PAGASA weather updates through an n8n webhook. Designed so each ASEAN member country can run its own instance.",
+      description: "A monitoring and coordination system for the ASEAN Regional Emergency Operations Center, enhanced from my EOC Information Management System and adapted to the NCR design (in development).",
+      contribution: "Designated programmer for the ASEAN 2026 deployment, facilitating the development and implementation of the Emergency Dashboard in support of the emergency preparedness and response operations of the STG EPR-NCR. Built on the EOC Information Management System and the EOC's Excel monitoring template, it adds an ICS facilities map, incident monitoring, road passability tracking, live IMT-to-EOC request notifications, and PAGASA weather updates through an n8n webhook. Designed so each ASEAN member country can run its own instance.",
       category: "Web",
       image: "",
       stack: ["laravel", "mysql", "n8n"],
@@ -1272,7 +1273,6 @@
     const track = document.getElementById("workTrack");
     track.innerHTML = list.map((p) => {
       const n = projects.indexOf(p) + 1;
-      const stack = p.stack.map(k => renderIcon(k, { size: 18 })).join("");
       const thumb = p.image
         ? `<div class="wthumb"><picture>
              <source type="image/webp" srcset="${p.image}-640.webp 640w, ${p.image}-1024.webp 1024w" sizes="(min-width: 1024px) 380px, (min-width: 640px) 48vw, 86vw" />
@@ -1289,7 +1289,6 @@
             <p class="wcat"><b>${String(n).padStart(2, "0")}</b> · ${p.category}</p>
             <h3>${esc(p.title)}</h3>
             <p class="wline">${esc(firstSentence(p.description))}</p>
-            <div class="wstack">${stack}</div>
             <div class="wactions">
               <button type="button" class="disclose" aria-expanded="false" aria-controls="wd-${n}">My contribution <span class="plus" aria-hidden="true">+</span></button>
               ${link}
